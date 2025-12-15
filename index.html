@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCL Agency Name Scraper | Accelerate Solutions</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --accent: #06b6d4;
+            --accent-dark: #0891b2;
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-900);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Logo/Brand */
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .brand h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, var(--gray-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand p {
+            color: var(--gray-400);
+            font-size: 1rem;
+        }
+
+        /* Main Card */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-section {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-section:last-child {
+            border-bottom: none;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .section-header h2 {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .instructions ol {
+            margin-left: 1.25rem;
+            color: var(--gray-300);
+            line-height: 2;
+        }
+
+        .instructions li {
+            padding-left: 0.5rem;
+        }
+
+        .instructions a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .instructions a:hover {
+            color: var(--accent-dark);
+            text-decoration: underline;
+        }
+
+        .instructions strong {
+            color: white;
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--pink);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .highlight-box {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 0.25rem 0.5rem;
+            color: var(--success);
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            color: var(--gray-300);
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 1rem 1.25rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--gray-200);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        textarea::placeholder {
+            color: var(--gray-500);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--gray-300);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, white 0%, var(--gray-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            display: none;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+        }
+
+        .settings-panel.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gray-700);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+        }
+
+        .setting-label {
+            color: var(--gray-300);
+            font-size: 0.9rem;
+        }
+
+        .setting-label small {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            margin-top: 0.15rem;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--gray-200);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: var(--gray-500);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Export Panel */
+        .export-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .export-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .export-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        /* Table */
+        .table-wrapper {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: var(--gray-600);
+            border-radius: 4px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        th {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-300);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 0.875rem 1.25rem;
+            color: var(--gray-200);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .row-num {
+            color: var(--gray-500);
+            font-size: 0.85rem;
+            width: 60px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-500);
+        }
+
+        .no-results-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-500);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--gray-800);
+            color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .card-section {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-row {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .search-wrapper {
+                width: 100%;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .export-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <div class="brand">
+            <div class="brand-icon">🏢</div>
+            <h1>SCL Agency Name Scraper</h1>
+            <p>Extract and export agency names from the UK RedCAP survey form</p>
+        </div>
+
+        <div class="card">
+            <!-- Instructions Section -->
+            <div class="card-section">
+                <div class="section-header">
+                    <div class="section-icon">📋</div>
+                    <h2>Instructions</h2>
+                </div>
+                <div class="instructions">
+                    <ol>
+                        <li>Visit the <a href="https://redcap.uky.edu/redcap/surveys/?s=94CLAmCof8" target="_blank" rel="noopener">UK RedCAP SCL Agency Survey</a></li>
+                        <li>Select <span class="highlight-box">Yes</span> for the <strong>SHARE</strong> option to display the list of agency names</li>
+                        <li>Wait for the agency list to fully load</li>
+                        <li>Right-click on the page and select <strong>"View Page Source"</strong> (or press <code>Ctrl+U</code> / <code>Cmd+Option+U</code>)</li>
+                        <li>Select all (<code>Ctrl+A</code> / <code>Cmd+A</code>) and copy (<code>Ctrl+C</code> / <code>Cmd+C</code>)</li>
+                        <li>Paste the HTML source into the text area below and click <strong>Extract Agencies</strong></li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="card-section">
+                <div class="section-header">
+                    <div class="section-icon">📄</div>
+                    <h2>HTML Source Input</h2>
+                </div>
+                <div class="input-wrapper">
+                    <label class="input-label">Paste the complete page source code below:</label>
+                    <textarea id="htmlInput" placeholder="Paste the HTML source code here...&#10;&#10;Tip: After viewing page source, use Ctrl+A to select all, then Ctrl+C to copy."></textarea>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary btn-lg" onclick="extractAgencies()">
+                        <span>🔍</span> Extract Agencies
+                    </button>
+                    <button class="btn btn-ghost" onclick="toggleSettings()">
+                        <span>⚙️</span> Settings
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAll()">
+                        <span>🗑️</span> Clear All
+                    </button>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="settings-panel" id="settingsPanel">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="removeParens" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Remove parenthetical text
+                                <small>Strip content inside () from names</small>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="uniqueOnly">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Show unique only
+                                <small>Remove duplicate agency names</small>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="sortAlpha" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Sort alphabetically
+                                <small>Order agencies A to Z</small>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="trimWhitespace" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Trim extra whitespace
+                                <small>Clean up spacing in names</small>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="removeEmpty" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Remove empty entries
+                                <small>Filter out blank lines</small>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label class="toggle">
+                                <input type="checkbox" id="includeTimestamp">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="setting-label">
+                                Include timestamp in exports
+                                <small>Add extraction date to files</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="card-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCount">0</div>
+                        <div class="stat-label">Total Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uniqueCount">0</div>
+                        <div class="stat-label">Unique Agencies</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="displayedCount">0</div>
+                        <div class="stat-label">Displayed</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card-section results-section" id="resultsSection">
+                <div class="section-header">
+                    <div class="section-icon">📊</div>
+                    <h2>Extracted Agencies</h2>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔎</span>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search agencies..." oninput="filterResults()">
+                    </div>
+                </div>
+
+                <!-- Export Panel -->
+                <div class="export-panel">
+                    <div class="export-header">
+                        <span>📥</span> Export Options
+                    </div>
+                    <div class="export-buttons">
+                        <button class="btn btn-success" onclick="exportCSV()">
+                            <span>📊</span> CSV
+                        </button>
+                        <button class="btn btn-warning" onclick="exportXLSX()">
+                            <span>📗</span> Excel (XLSX)
+                        </button>
+                        <button class="btn btn-purple" onclick="exportJSON()">
+                            <span>📦</span> JSON
+                        </button>
+                        <button class="btn btn-accent" onclick="exportTXT()">
+                            <span>📝</span> Text (TXT)
+                        </button>
+                        <button class="btn btn-pink" onclick="exportPDF()">
+                            <span>📑</span> PDF
+                        </button>
+                        <button class="btn btn-ghost" onclick="copyToClipboard()">
+                            <span>📋</span> Copy All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="table-wrapper">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="row-num">#</th>
+                                    <th>Agency Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p>© 2025 <strong>Accelerate Solutions, LLC</strong>. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-icon"></span>
+        <span class="toast-message"></span>
+    </div>
+
+    <script>
+        let allAgencies = [];
+        let rawAgencies = [];
+        let filteredAgencies = [];
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('.toast-icon');
+            const msg = toast.querySelector('.toast-message');
+            
+            icon.textContent = type === 'success' ? '✓' : '✗';
+            msg.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('visible');
+        }
+
+        function processAgencyName(name) {
+            let processed = name;
+            
+            // Trim whitespace
+            if (document.getElementById('trimWhitespace').checked) {
+                processed = processed.replace(/\s+/g, ' ').trim();
+            }
+            
+            // Remove parenthetical content
+            if (document.getElementById('removeParens').checked) {
+                processed = processed.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+            }
+            
+            return processed;
+        }
+
+        function extractAgencies() {
+            const html = document.getElementById('htmlInput').value;
+            
+            if (!html.trim()) {
+                showToast('Please paste the HTML source code first', 'error');
+                return;
+            }
+
+            rawAgencies = [];
+            
+            // Create a DOM parser
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Method 1: Look for checkbox labels (most common pattern in REDCap)
+            const labels = doc.querySelectorAll('label');
+            labels.forEach(label => {
+                const text = label.textContent.trim();
+                // Filter out common non-agency labels
+                if (text && 
+                    text.length > 2 && 
+                    !text.toLowerCase().includes('yes') && 
+                    !text.toLowerCase().includes('no') &&
+                    !text.toLowerCase().includes('reset') &&
+                    !text.toLowerCase().includes('must provide') &&
+                    !text.toLowerCase().includes('employee') &&
+                    !text.toLowerCase().includes('choose') &&
+                    !text.toLowerCase().includes('please') &&
+                    !text.toLowerCase().includes('submit') &&
+                    !text.toLowerCase().match(/^(new|share|move)$/i)) {
+                    
+                    // Check if this looks like an agency name (contains letters)
+                    if (/[A-Za-z]{2,}/.test(text)) {
+                        rawAgencies.push(text);
+                    }
+                }
+            });
+
+            // Method 2: Look for checkbox inputs with agency-related patterns
+            if (rawAgencies.length === 0) {
+                const checkboxes = doc.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    const label = checkbox.nextElementSibling || checkbox.parentElement;
+                    if (label) {
+                        const text = label.textContent.trim();
+                        if (text && text.length > 3) {
+                            rawAgencies.push(text);
+                        }
+                    }
+                });
+            }
+
+            // Method 3: Look for list items that might contain agency names
+            if (rawAgencies.length === 0) {
+                const listItems = doc.querySelectorAll('li, option');
+                listItems.forEach(item => {
+                    const text = item.textContent.trim();
+                    if (text && text.length > 3 && /[A-Za-z]{2,}/.test(text)) {
+                        rawAgencies.push(text);
+                    }
+                });
+            }
+
+            // Clean up the results
+            rawAgencies = rawAgencies.filter(name => {
+                // Remove very short names
+                if (name.length < 3) return false;
+                // Remove HTML tags if any slipped through
+                if (/<[^>]*>/.test(name)) return false;
+                // Keep reasonable length names
+                if (name.length > 200) return false;
+                return true;
+            });
+
+            if (rawAgencies.length === 0) {
+                showToast('No agencies found. Make sure you copied the complete page source after selecting "Yes" for SHARE', 'error');
+                return;
+            }
+
+            // Process the agencies with current settings
+            applyProcessing();
+            
+            showToast(`Found ${rawAgencies.length} agencies!`, 'success');
+            document.getElementById('resultsSection').classList.add('visible');
+        }
+
+        function applyProcessing() {
+            // Process each agency name
+            allAgencies = rawAgencies.map(name => processAgencyName(name));
+            
+            // Remove empty entries if enabled
+            if (document.getElementById('removeEmpty').checked) {
+                allAgencies = allAgencies.filter(name => name.length > 0);
+            }
+            
+            updateStats();
+            filterResults();
+        }
+
+        function getUniqueAgencies(agencies) {
+            return [...new Set(agencies)];
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allAgencies.length;
+            document.getElementById('uniqueCount').textContent = getUniqueAgencies(allAgencies).length;
+        }
+
+        function filterResults() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const uniqueOnly = document.getElementById('uniqueOnly').checked;
+            const sortAlpha = document.getElementById('sortAlpha').checked;
+
+            // Re-process from raw if settings changed
+            if (rawAgencies.length > 0) {
+                allAgencies = rawAgencies.map(name => processAgencyName(name));
+                if (document.getElementById('removeEmpty').checked) {
+                    allAgencies = allAgencies.filter(name => name.length > 0);
+                }
+            }
+
+            // Start with all or unique
+            filteredAgencies = uniqueOnly ? getUniqueAgencies(allAgencies) : [...allAgencies];
+
+            // Apply search filter
+            if (searchTerm) {
+                filteredAgencies = filteredAgencies.filter(agency => 
+                    agency.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Sort if needed
+            if (sortAlpha) {
+                filteredAgencies.sort((a, b) => a.localeCompare(b));
+            }
+
+            // Update stats
+            document.getElementById('totalCount').textContent = allAgencies.length;
+            document.getElementById('uniqueCount').textContent = getUniqueAgencies(allAgencies).length;
+            document.getElementById('displayedCount').textContent = filteredAgencies.length;
+            
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('resultsBody');
+            
+            if (filteredAgencies.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <div>No agencies match your search</div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredAgencies.map((agency, index) => `
+                <tr>
+                    <td class="row-num">${index + 1}</td>
+                    <td>${escapeHtml(agency)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getExportData() {
+            return filteredAgencies;
+        }
+
+        function getTimestamp() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function exportCSV() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to export', 'error');
+                return;
+            }
+
+            let csvContent = data.map(agency => 
+                `"${agency.replace(/"/g, '""')}"`
+            ).join('\n');
+
+            if (document.getElementById('includeTimestamp').checked) {
+                csvContent = `"Exported: ${getTimestamp()}"\n\n` + csvContent;
+            }
+
+            downloadFile(csvContent, `scl_agencies_${getTimestamp()}.csv`, 'text/csv');
+            setTimeout(() => showToast('CSV downloaded successfully!', 'success'), 300);
+        }
+
+        function exportXLSX() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to export', 'error');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const wsData = data.map(agency => [agency]);
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 70 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, 'SCL Agencies');
+
+            // Add metadata sheet if timestamp enabled
+            if (document.getElementById('includeTimestamp').checked) {
+                const metaData = [
+                    ['SCL Agency Name Export'],
+                    [''],
+                    ['Export Date', new Date().toLocaleString()],
+                    ['Total Agencies', data.length],
+                    ['Source', 'UK RedCAP Survey'],
+                    [''],
+                    ['© 2025 Accelerate Solutions, LLC']
+                ];
+                const metaWs = XLSX.utils.aoa_to_sheet(metaData);
+                XLSX.utils.book_append_sheet(wb, metaWs, 'Export Info');
+            }
+
+            XLSX.writeFile(wb, `scl_agencies_${getTimestamp()}.xlsx`);
+            setTimeout(() => showToast('Excel file downloaded successfully!', 'success'), 300);
+        }
+
+        function exportJSON() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to export', 'error');
+                return;
+            }
+
+            const jsonObj = {
+                agencies: data,
+                count: data.length
+            };
+
+            if (document.getElementById('includeTimestamp').checked) {
+                jsonObj.exportDate = new Date().toISOString();
+                jsonObj.source = 'UK RedCAP SCL Agency Survey';
+            }
+
+            const jsonContent = JSON.stringify(jsonObj, null, 2);
+            downloadFile(jsonContent, `scl_agencies_${getTimestamp()}.json`, 'application/json');
+            setTimeout(() => showToast('JSON downloaded successfully!', 'success'), 300);
+        }
+
+        function exportTXT() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to export', 'error');
+                return;
+            }
+
+            let txtContent = '';
+            
+            if (document.getElementById('includeTimestamp').checked) {
+                txtContent = `SCL Agency Names\nExported: ${new Date().toLocaleString()}\nTotal: ${data.length} agencies\n${'='.repeat(50)}\n\n`;
+            }
+
+            txtContent += data.join('\n');
+
+            if (document.getElementById('includeTimestamp').checked) {
+                txtContent += `\n\n${'='.repeat(50)}\n© 2025 Accelerate Solutions, LLC`;
+            }
+
+            downloadFile(txtContent, `scl_agencies_${getTimestamp()}.txt`, 'text/plain');
+            setTimeout(() => showToast('Text file downloaded successfully!', 'success'), 300);
+        }
+
+        function exportPDF() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to export', 'error');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Title
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SCL Agency Names', 105, 20, { align: 'center' });
+            
+            // Subtitle with count
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`${data.length} agencies exported`, 105, 28, { align: 'center' });
+            
+            if (document.getElementById('includeTimestamp').checked) {
+                doc.setFontSize(9);
+                doc.text(`Exported: ${new Date().toLocaleString()}`, 105, 34, { align: 'center' });
+            }
+            
+            // Line
+            doc.setDrawColor(200);
+            doc.line(20, 40, 190, 40);
+            
+            // Agency list
+            doc.setFontSize(10);
+            doc.setTextColor(0);
+            let y = 50;
+            const lineHeight = 6;
+            const pageHeight = 280;
+            const margin = 20;
+            
+            data.forEach((agency, index) => {
+                if (y > pageHeight) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                // Number
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(150);
+                doc.text(`${index + 1}.`, margin, y);
+                
+                // Agency name
+                doc.setTextColor(0);
+                const maxWidth = 160;
+                const lines = doc.splitTextToSize(agency, maxWidth);
+                doc.text(lines, margin + 12, y);
+                
+                y += lineHeight * lines.length;
+            });
+            
+            // Footer on last page
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text(`© 2025 Accelerate Solutions, LLC`, 105, 290, { align: 'center' });
+                doc.text(`Page ${i} of ${pageCount}`, 190, 290, { align: 'right' });
+            }
+            
+            doc.save(`scl_agencies_${getTimestamp()}.pdf`);
+            setTimeout(() => showToast('PDF downloaded successfully!', 'success'), 300);
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            const data = getExportData();
+            if (data.length === 0) {
+                showToast('No agencies to copy', 'error');
+                return;
+            }
+
+            const text = data.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`${data.length} agencies copied to clipboard!`, 'success');
+            }).catch(() => {
+                showToast('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('htmlInput').value = '';
+            document.getElementById('searchInput').value = '';
+            allAgencies = [];
+            rawAgencies = [];
+            filteredAgencies = [];
+            document.getElementById('totalCount').textContent = '0';
+            document.getElementById('displayedCount').textContent = '0';
+            document.getElementById('uniqueCount').textContent = '0';
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('resultsSection').classList.remove('visible');
+            showToast('All data cleared', 'success');
+        }
+
+        // Add event listeners for settings changes
+        document.querySelectorAll('.settings-panel input').forEach(input => {
+            input.addEventListener('change', () => {
+                if (rawAgencies.length > 0) {
+                    filterResults();
+                }
+            });
+        });
+
+        // Auto-extract when pasting into textarea
+        document.getElementById('htmlInput').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                if (this.value.trim().length > 0) {
+                    extractAgencies();
+                }
+            }, 100);
+        });
+
+        // Focus textarea on paste anywhere
+        document.addEventListener('paste', function(e) {
+            const textarea = document.getElementById('htmlInput');
+            if (document.activeElement !== textarea && !document.activeElement.matches('input')) {
+                textarea.focus();
+            }
+        });
+    </script>
+</body>
+</html>
