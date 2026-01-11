@@ -808,12 +808,11 @@
                 </div>
                 <div class="instructions">
                     <ol>
-                        <li>Visit the <a href="https://redcap.uky.edu/redcap/surveys/?s=94CLAmCof8" target="_blank" rel="noopener">UK RedCAP SCL Agency Survey</a></li>
-                        <li>Select <span class="highlight-box">Yes</span> for the <strong>SHARE</strong> option to display the list of agency names</li>
-                        <li>Wait for the agency list to fully load</li>
-                        <li>Right-click on the page and select <strong>"View Page Source"</strong> (or press <code>Ctrl+U</code> / <code>Cmd+Option+U</code>)</li>
-                        <li>Select all (<code>Ctrl+A</code> / <code>Cmd+A</code>) and copy (<code>Ctrl+C</code> / <code>Cmd+C</code>)</li>
-                        <li>Paste the HTML source into the text area below and click <strong>Extract Agencies</strong></li>
+                        <li>Open this tool. It will automatically fetch the latest survey HTML via the secure proxy.</li>
+                        <li>Wait for the confirmation message, then review the <strong>Extracted Agencies</strong> section below.</li>
+                        <li>Use search and filters to find what you need, then export to Excel if desired.</li>
+                        <li>If you want to inspect the raw HTML used for extraction, click <strong>Show HTML Source</strong>.</li>
+                        <li>If the agency list ever looks out of date, click <strong>Reload from Proxy</strong> to refresh.</li>
                     </ol>
                 </div>
             </div>
@@ -825,14 +824,17 @@
                     <h2>HTML Source Input</h2>
                 </div>
                 <div class="input-wrapper">
-                    <label class="input-label">Paste the complete page source code below:</label>
-                    <textarea id="htmlInput" placeholder="Paste the HTML source code here...&#10;&#10;Tip: After viewing page source, use Ctrl+A to select all, then Ctrl+C to copy."></textarea>
+                    <label class="input-label">HTML source returned by the proxy (optional):</label>
+                    <div class="btn-row" style="margin-top:0.25rem; justify-content:flex-start;">
+    <button class="btn btn-secondary" onclick="toggleHtmlSource(this)">Show HTML Source</button>
+</div>
+<textarea id="htmlInput" placeholder="Paste the HTML source code here...&#10;&#10;Tip: After viewing page source, use Ctrl+A to select all, then Ctrl+C to copy." readonly style="display:none; margin-top:0.75rem;"></textarea>
                 </div>
                 <div class="btn-row">
-                    <button class="btn btn-primary btn-lg" onclick="extractAgencies()">
-                        <span>🔍</span> Extract Agencies
+                    <button class="btn btn-accent btn-lg" onclick="loadHtmlViaProxy()">
+                        <span>🌐</span> Reload from Proxy
                     </button>
-                    <button class="btn btn-ghost" onclick="toggleSettings()">
+<button class="btn btn-ghost" onclick="toggleSettings()">
                         <span>⚙️</span> Settings
                     </button>
                     <button class="btn btn-danger" onclick="clearAll()">
@@ -996,6 +998,71 @@
     </div>
 
     <script>
+        // =============================================================================
+        // PROXY CONFIGURATION
+        // =============================================================================
+        // This Cloudflare Worker returns the REDCap survey HTML with permissive CORS headers.
+        // Your app can safely fetch from this URL (instead of asking users to copy/paste page source).
+        const PROXY_URL = "https://agencylist.patrick-44b.workers.dev/";
+
+        /**
+         * Fetches the REDCap survey HTML via the Cloudflare Worker proxy, populates the HTML textarea,
+         * and then runs the existing extraction logic.
+         */
+        async function loadHtmlViaProxy() {
+            const textarea = document.getElementById('htmlInput');
+            const btns = document.querySelectorAll('.btn-row button');
+
+            try {
+                // Disable buttons briefly to prevent double-click races
+                btns.forEach(b => b.disabled = true);
+                showToast('Fetching HTML via proxy…', 'success');
+
+                const resp = await fetch(PROXY_URL, { method: 'GET' });
+                const html = await resp.text();
+
+                // Always populate the textarea so you can inspect the returned HTML on failure.
+                textarea.value = html || '';
+
+                if (!resp.ok) {
+                    showToast(`Proxy returned HTTP ${resp.status}. See HTML box for details.`, 'error');
+                    return;
+                }
+
+                showToast('HTML loaded. Extracting agencies…', 'success');
+                extractAgencies();
+
+                // After extraction, scroll so "Extracted Agencies" is visible
+                scrollToResultsSection();
+} catch (err) {
+                showToast('Failed to fetch via proxy (network error).', 'error');
+            } finally {
+                btns.forEach(b => b.disabled = false);
+            }
+        }
+
+
+
+        function scrollToResultsSection() {
+            const el = document.getElementById('resultsSection');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function toggleHtmlSource(btnEl) {
+            const textarea = document.getElementById('htmlInput');
+            const btn = btnEl;
+            const isHidden = textarea.style.display === 'none' || textarea.style.display === '';
+            textarea.style.display = isHidden ? 'block' : 'none';
+            if (btn) btn.textContent = isHidden ? 'Hide HTML Source' : 'Show HTML Source';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auto-load on page load
+            loadHtmlViaProxy();
+        });
+
         let allAgencies = [];
         let rawAgencies = [];
         let filteredAgencies = [];
