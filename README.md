@@ -1,30 +1,47 @@
 # SCL Agency Name Scraper
 
-A simple tool to extract agency names from the UK RedCAP SCL Agency Survey form and export them in various formats.
+A browser-based tool that automatically retrieves and extracts agency names from the UK REDCap SCL Agency Survey form and allows export in multiple formats.
+
+The application uses a lightweight serverless proxy to fetch the survey HTML directly, eliminating the need for manual page-source copying.
 
 ## Usage
 
-1. Go to [https://pgspears.github.io/AgencyExtractor](https://pgspears.github.io/AgencyExtractor)
-2. Visit the [UK RedCAP SCL Agency Survey](https://redcap.uky.edu/redcap/surveys/?s=94CLAmCof8)
-3. Select **Yes** for the SHARE option to display the agency list
-4. View Page Source (`Ctrl+U` / `Cmd+Option+U`)
-5. Select all and copy (`Ctrl+A`, `Ctrl+C`)
-6. Paste into the app — extraction runs automatically
+1. Go to  
+   **https://pgspears.github.io/AgencyExtractor**
+
+2. The application automatically loads the survey HTML via a secure proxy.
+
+3. Agency names are extracted immediately and displayed under **Extracted Agencies**.
+
+4. Use the export buttons to download the agency list in your preferred format.
+
+No manual interaction with the REDCap survey page is required.
+
+## Optional: View Source HTML
+
+An optional toggle allows you to view the raw HTML returned by the proxy for transparency or debugging purposes. This is read-only and not required for normal use.
 
 ## Export Formats
 
-- CSV
-- Excel (XLSX)
-- JSON
-- Text (TXT)
-- PDF
+- CSV  
+- Excel (XLSX)  
+- JSON  
+- Text (TXT)  
+- PDF  
 
 ## Settings
 
-- Remove parenthetical text (enabled by default)
-- Show unique agencies only
-- Sort alphabetically
-- Include timestamp in exports
+- Remove parenthetical text (enabled by default)  
+- Show unique agencies only  
+- Sort alphabetically  
+- Include timestamp in exports  
+
+## How It Works (Brief)
+
+- A Cloudflare Worker fetches the REDCap survey HTML server-side.
+- The browser app retrieves that HTML without CORS restrictions.
+- Agency names are parsed directly from the returned document.
+- No authentication, cookies, or simulated user interaction is required.
 
 ## Requirements
 
@@ -33,6 +50,6 @@ A simple tool to extract agency names from the UK RedCAP SCL Agency Survey form 
 
 ---
 
-© 2025 Accelerate Solutions, LLC
+© 2025 Accelerate Solutions, LLC  
 
-*Created with [Claude Opus 4.5](https://www.anthropic.com/claude)*
+*Created with Claude Opus 4.5*
