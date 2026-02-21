@@ -1,1528 +1,1596 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCL Agency Name Scraper | Accelerate Solutions</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
-            --accent: #06b6d4;
-            --accent-dark: #0891b2;
-            --success: #10b981;
-            --success-dark: #059669;
-            --warning: #f59e0b;
-            --warning-dark: #d97706;
-            --danger: #ef4444;
-            --danger-dark: #dc2626;
-            --purple: #8b5cf6;
-            --pink: #ec4899;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--gray-900);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Animated background */
-        .bg-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .bg-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Logo/Brand */
-        .brand {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .brand-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.5);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .brand h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, var(--gray-300) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-
-        .brand p {
-            color: var(--gray-400);
-            font-size: 1rem;
-        }
-
-        /* Main Card */
-        .card {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: var(--shadow-xl);
-        }
-
-        .card-section {
-            padding: 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .card-section:last-child {
-            border-bottom: none;
-        }
-
-        /* Section Headers */
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
-
-        .section-header h2 {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Instructions */
-        .instructions {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 16px;
-            padding: 1.5rem;
-        }
-
-        .instructions ol {
-            margin-left: 1.25rem;
-            color: var(--gray-300);
-            line-height: 2;
-        }
-
-        .instructions li {
-            padding-left: 0.5rem;
-        }
-
-        .instructions a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .instructions a:hover {
-            color: var(--accent-dark);
-            text-decoration: underline;
-        }
-
-        .instructions strong {
-            color: white;
-        }
-
-        .instructions code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 0.15rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: var(--pink);
-            font-family: 'Monaco', 'Menlo', monospace;
-        }
-
-        .highlight-box {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 8px;
-            padding: 0.25rem 0.5rem;
-            color: var(--success);
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        /* Input Area */
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-label {
-            display: block;
-            color: var(--gray-300);
-            font-weight: 500;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
-        }
-
-        textarea {
-            width: 100%;
-            height: 180px;
-            padding: 1rem 1.25rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: var(--gray-200);
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.85rem;
-            resize: vertical;
-            transition: all 0.3s;
-        }
-
-        textarea::placeholder {
-            color: var(--gray-500);
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        /* Buttons */
-        .btn-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(rgba(255,255,255,0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover::before {
-            opacity: 1;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.5);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-accent {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(6, 182, 212, 0.4);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.4);
-        }
-
-        .btn-purple {
-            background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(139, 92, 246, 0.4);
-        }
-
-        .btn-pink {
-            background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(236, 72, 153, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn-ghost {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--gray-300);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .btn-lg {
-            padding: 1rem 2rem;
-            font-size: 1rem;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 16px;
-            padding: 1.25rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, white 0%, var(--gray-300) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.2;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--gray-400);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 0.25rem;
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            display: none;
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .settings-panel.visible {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .setting-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .toggle {
-            position: relative;
-            width: 48px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--gray-700);
-            border-radius: 26px;
-            transition: 0.3s;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-
-        .toggle input:checked + .toggle-slider {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-        }
-
-        .toggle input:checked + .toggle-slider::before {
-            transform: translateX(22px);
-        }
-
-        .setting-label {
-            color: var(--gray-300);
-            font-size: 0.9rem;
-        }
-
-        .setting-label small {
-            display: block;
-            color: var(--gray-500);
-            font-size: 0.75rem;
-            margin-top: 0.15rem;
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-        }
-
-        .results-section.visible {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Filter Bar */
-        .filter-bar {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1.25rem;
-        }
-
-        .search-wrapper {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-500);
-            pointer-events: none;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.75rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: var(--gray-200);
-            font-size: 0.9rem;
-            font-family: inherit;
-            transition: all 0.3s;
-        }
-
-        .search-input::placeholder {
-            color: var(--gray-500);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        /* Export Panel */
-        .export-panel {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .export-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            color: white;
-            font-weight: 600;
-        }
-
-        .export-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        /* Table */
-        .table-wrapper {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .table-scroll {
-            max-height: 450px;
-            overflow-y: auto;
-        }
-
-        .table-scroll::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .table-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .table-scroll::-webkit-scrollbar-thumb {
-            background: var(--gray-600);
-            border-radius: 4px;
-        }
-
-        .table-scroll::-webkit-scrollbar-thumb:hover {
-            background: var(--gray-500);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            position: sticky;
-            top: 0;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 10;
-        }
-
-        th {
-            padding: 1rem 1.25rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--gray-300);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        td {
-            padding: 0.875rem 1.25rem;
-            color: var(--gray-200);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        tbody tr {
-            transition: background 0.2s;
-        }
-
-        tbody tr:hover {
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .row-num {
-            color: var(--gray-500);
-            font-size: 0.85rem;
-            width: 60px;
-            font-family: 'Monaco', 'Menlo', monospace;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 3rem;
-            color: var(--gray-500);
-        }
-
-        .no-results-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray-500);
-            font-size: 0.85rem;
-        }
-
-        .footer a {
-            color: var(--primary-light);
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            background: var(--gray-800);
-            color: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow-xl);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .toast.success {
-            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .toast.error {
-            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .toast-icon {
-            font-size: 1.25rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .card-section {
-                padding: 1.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .btn-row {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .filter-bar {
-                flex-direction: column;
-            }
-
-            .search-wrapper {
-                width: 100%;
-            }
-
-            .export-buttons {
-                flex-direction: column;
-            }
-
-            .export-buttons .btn {
-                width: 100%;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DBHDID Provider Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+  --bg:      #060a14;
+  --surf:    #0c1422;
+  --surf2:   #111c30;
+  --surf3:   #172035;
+  --panel:   #0a1020;
+  --line:    rgba(90,140,255,0.10);
+  --line2:   rgba(90,140,255,0.18);
+  --line3:   rgba(90,140,255,0.32);
+  --t1:      #dde9ff;
+  --t2:      #8ba5d5;
+  --t3:      #4a6090;
+  --t4:      #28405a;
+  --blue:    #4a90ff;
+  --blue2:   #80b4ff;
+  --sky:     #00c8ff;
+  --sky2:    #60deff;
+  --teal:    #00e5b0;
+  --teal2:   #50f5d0;
+  --amber:   #f5a623;
+  --amber2:  #ffc050;
+  --rose:    #ff3d6b;
+  --rose2:   #ff7595;
+  --violet:  #9966ff;
+  --violet2: #bb99ff;
+  --green:   #00d978;
+  --green2:  #50f0a5;
+  --sh:      0 0 0 1px rgba(90,140,255,0.08), 0 8px 40px rgba(0,0,20,0.60);
+  --sh2:     0 0 0 1px rgba(90,140,255,0.14), 0 24px 80px rgba(0,0,30,0.80);
+  --r:       10px;
+  --rl:      16px;
+  --ease:    cubic-bezier(0.4,0,0.2,1);
+  --tf:      0.15s;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'Plus Jakarta Sans', sans-serif;
+  --serif:   'Fraunces', serif;
+  --sidebar: 320px;
+  --bar:     62px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* Ambient BG */
+.bg-a{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 65% 50% at 12% -5%,rgba(74,144,255,0.13) 0%,transparent 60%),radial-gradient(ellipse 55% 60% at 90% 105%,rgba(0,229,176,0.08) 0%,transparent 60%),radial-gradient(ellipse 40% 45% at 50% 55%,rgba(153,102,255,0.04) 0%,transparent 65%)}
+.bg-g{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(74,144,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(74,144,255,0.028) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(ellipse 88% 82% at 50% 45%,black,transparent);mask-image:radial-gradient(ellipse 88% 82% at 50% 45%,black,transparent)}
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:200;height:var(--bar);background:rgba(6,10,20,0.90);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--line);display:flex;align-items:center}
+.topbar-inner{width:100%;max-width:1850px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none;flex-shrink:0}
+.brand-gem{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--blue) 0%,var(--sky) 55%,var(--teal) 100%);display:grid;place-items:center;font-size:19px;flex-shrink:0;box-shadow:0 0 0 1px rgba(74,144,255,0.4),0 0 28px rgba(74,144,255,0.35);animation:gPulse 4s ease-in-out infinite}
+@keyframes gPulse{0%,100%{box-shadow:0 0 0 1px rgba(74,144,255,0.4),0 0 28px rgba(74,144,255,0.3)}50%{box-shadow:0 0 0 1px rgba(74,144,255,0.7),0 0 45px rgba(74,144,255,0.5)}}
+.brand-name{font-family:var(--serif);font-weight:400;font-size:17px;letter-spacing:0.02em;background:linear-gradient(90deg,var(--blue2),var(--sky2),var(--teal2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.brand-sub{font-family:var(--mono);font-size:8.5px;color:var(--t3);letter-spacing:0.22em;text-transform:uppercase;margin-top:1px}
+/* Status pill */
+.spill{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,0.03);font-family:var(--mono);font-size:11px;color:var(--t3);transition:all var(--tf) var(--ease)}
+.spill-dot{width:8px;height:8px;border-radius:50%;background:var(--t4);transition:all var(--tf) var(--ease)}
+.spill.loading{border-color:rgba(74,144,255,0.35);background:rgba(74,144,255,0.08);color:var(--blue2)}
+.spill.loading .spill-dot{background:var(--blue);animation:dotPulse 1s ease-in-out infinite}
+.spill.ok{border-color:rgba(0,217,120,0.30);background:rgba(0,217,120,0.06);color:var(--green2)}
+.spill.ok .spill-dot{background:var(--green)}
+.spill.err{border-color:rgba(255,61,107,0.30);background:rgba(255,61,107,0.06);color:var(--rose2)}
+.spill.err .spill-dot{background:var(--rose)}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.6)}}
+/* Progress under topbar */
+.prog-strip{position:sticky;top:var(--bar);z-index:199;height:3px;background:transparent;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--sky),var(--teal));transition:width 0.4s var(--ease);box-shadow:0 0 12px rgba(74,144,255,0.6)}
+.prog-fill.scan{width:60%!important;position:absolute;animation:pScan 1.35s linear infinite}
+@keyframes pScan{0%{left:-60%}100%{left:105%}}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:0 18px;height:38px;border-radius:var(--r);border:1px solid var(--line2);background:var(--surf2);color:var(--t2);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all var(--tf) var(--ease);white-space:nowrap;user-select:none;position:relative;overflow:hidden}
+.btn:hover:not(:disabled){border-color:var(--line3);color:var(--t1);background:var(--surf3);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,20,0.5)}
+.btn:active:not(:disabled){transform:translateY(0);box-shadow:none}
+.btn:disabled{opacity:0.32;cursor:not-allowed;transform:none!important}
+.btn.ico{width:38px;padding:0;justify-content:center;font-size:16px}
+.btn.sm{height:32px;padding:0 13px;font-size:12px}
+.btn.sm.ico{width:32px}
+.btn.primary{background:var(--blue);border-color:transparent;color:#fff;font-weight:700;box-shadow:0 0 18px rgba(74,144,255,0.35)}
+.btn.primary:hover:not(:disabled){background:var(--blue2);box-shadow:0 0 30px rgba(74,144,255,0.55)}
+.btn.excel{background:rgba(0,217,120,0.12);border-color:rgba(0,217,120,0.28);color:var(--green2)}
+.btn.excel:hover:not(:disabled){background:rgba(0,217,120,0.22);border-color:rgba(0,217,120,0.5)}
+.btn.csv{background:rgba(245,166,35,0.10);border-color:rgba(245,166,35,0.28);color:var(--amber2)}
+.btn.csv:hover:not(:disabled){background:rgba(245,166,35,0.20)}
+.btn.pdf{background:rgba(255,61,107,0.10);border-color:rgba(255,61,107,0.28);color:var(--rose2)}
+.btn.pdf:hover:not(:disabled){background:rgba(255,61,107,0.20)}
+/* ── TOPBAR ACTIONS ── */
+.tbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* ── LAYOUT ── */
+.shell{position:relative;z-index:1;max-width:1850px;margin:0 auto;padding:20px 28px 110px;display:grid;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:auto auto 1fr;gap:16px}
+.row-kpi{grid-column:1/-1;grid-row:1}
+.row-afbar{grid-column:1/-1;grid-row:2}
+.col-side{grid-column:1;grid-row:3}
+.col-main{grid-column:2;grid-row:3;display:flex;flex-direction:column;gap:14px;min-width:0}
+@media(max-width:1200px){.shell{grid-template-columns:1fr}.col-side{grid-column:1;grid-row:4}.col-main{grid-column:1;grid-row:3}}
+/* ── KPI CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--rl);padding:20px 22px;position:relative;overflow:hidden;transition:all 0.25s var(--ease);cursor:default}
+.kpi::after{content:'';position:absolute;top:-20px;right:-20px;width:95px;height:95px;border-radius:50%;pointer-events:none;transition:all 0.4s var(--ease)}
+.kpi:hover{border-color:var(--line2);transform:translateY(-3px);box-shadow:var(--sh)}
+.kpi-blue::after{background:radial-gradient(circle,rgba(74,144,255,0.18),transparent 70%)}
+.kpi-sky::after{background:radial-gradient(circle,rgba(0,200,255,0.14),transparent 70%)}
+.kpi-teal::after{background:radial-gradient(circle,rgba(0,229,176,0.14),transparent 70%)}
+.kpi-amb::after{background:radial-gradient(circle,rgba(245,166,35,0.14),transparent 70%)}
+.kpi-grn::after{background:radial-gradient(circle,rgba(0,217,120,0.12),transparent 70%)}
+.kpi-eye{font-family:var(--mono);font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.22em;color:var(--t3);margin-bottom:12px}
+.kpi-num{font-family:var(--serif);font-size:46px;font-weight:300;line-height:1;letter-spacing:-0.01em;transition:color 0.3s}
+.kpi-blue .kpi-num{color:var(--blue2)}.kpi-sky .kpi-num{color:var(--sky2)}.kpi-teal .kpi-num{color:var(--teal2)}.kpi-amb .kpi-num{color:var(--amber2)}.kpi-grn .kpi-num{color:var(--green2)}
+.kpi-cap{margin-top:8px;font-size:11px;color:var(--t3)}
+.kpi-track{height:2px;background:rgba(255,255,255,0.055);border-radius:999px;margin-top:14px;overflow:hidden}
+.kpi-fill{height:100%;border-radius:999px;transition:width 0.6s var(--ease)}
+.kpi-blue .kpi-fill{background:linear-gradient(90deg,var(--blue),var(--sky))}.kpi-sky .kpi-fill{background:linear-gradient(90deg,var(--sky),var(--teal))}.kpi-teal .kpi-fill{background:var(--teal)}.kpi-amb .kpi-fill{background:var(--amber)}.kpi-grn .kpi-fill{background:var(--green)}
+/* ── ACTIVE FILTER BAR ── */
+.afbar{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:48px}
+.afbar-label{font-family:var(--mono);font-size:10px;color:var(--t3);flex-shrink:0;white-space:nowrap}
+.afbar-label strong{color:var(--t2)}
+.afbar-pills{display:flex;gap:7px;flex-wrap:wrap;flex:1}
+.af-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:1px solid rgba(74,144,255,0.35);background:rgba(74,144,255,0.12);color:var(--blue2);font-family:var(--mono);font-size:10px;font-weight:600;animation:pillPop 0.14s ease-out}
+@keyframes pillPop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.af-x{background:none;border:none;color:var(--blue2);cursor:pointer;font-size:14px;line-height:1;padding:0 1px;transition:color var(--tf)}
+.af-x:hover{color:var(--rose2)}
+.afbar-clear{flex-shrink:0;font-family:var(--mono);font-size:10px;color:var(--t3);cursor:pointer;text-decoration:underline;transition:color var(--tf);background:none;border:none;padding:0}
+.afbar-clear:hover{color:var(--rose2)}
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh)}
+.card-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.02)}
+.card-title{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--t3)}
+.tick{width:3px;height:16px;border-radius:2px;flex-shrink:0}
+.t-blue{background:linear-gradient(180deg,var(--blue),var(--sky))}
+.t-teal{background:linear-gradient(180deg,var(--teal),var(--sky))}
+.t-amb{background:var(--amber)}
+.card-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+/* ── FILTER GROUPS ── */
+.fgrp{display:flex;flex-direction:column;gap:9px}
+.flbl{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;color:var(--t3)}
+.fhint{color:var(--blue2);font-size:9px;font-weight:600;transition:opacity 0.2s}
+/* Text input */
+.fw{position:relative}
+.fi-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:15px;pointer-events:none}
+.finput{width:100%;height:44px;padding:0 40px 0 40px;border-radius:var(--r);border:1px solid var(--line2);background:var(--panel);color:var(--t1);font-family:var(--sans);font-size:13px;outline:none;transition:all var(--tf) var(--ease)}
+.finput::placeholder{color:var(--t4)}
+.finput:focus{border-color:rgba(74,144,255,0.5);box-shadow:0 0 0 3px rgba(74,144,255,0.12);background:rgba(74,144,255,0.04)}
+.fi-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:4px 5px;border-radius:6px;display:none;transition:all var(--tf)}
+.fi-clear.show{display:block}
+.fi-clear:hover{color:var(--t1);background:var(--surf2)}
+/* Segmented control — LARGE hit targets */
+.seg{display:grid;gap:4px;padding:5px;border-radius:var(--rl);background:var(--panel);border:1px solid var(--line)}
+.seg.c2{grid-template-columns:1fr 1fr}
+.seg.c3{grid-template-columns:1fr 1fr 1fr}
+.seg.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+.seg-opt{height:44px;border:none;background:transparent;border-radius:9px;color:var(--t2);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all var(--tf) var(--ease);display:flex;align-items:center;justify-content:center;letter-spacing:0.02em;user-select:none;position:relative}
+.seg-opt:hover:not(.on):not(:disabled){color:var(--t1);background:rgba(255,255,255,0.04)}
+.seg-opt.on{color:#fff;font-weight:700}
+.seg-opt.on.c-blue{background:var(--blue);box-shadow:0 2px 14px rgba(74,144,255,0.45)}
+.seg-opt.on.c-teal{background:var(--teal);color:#042018;box-shadow:0 2px 14px rgba(0,229,176,0.40)}
+.seg-opt.on.c-amber{background:var(--amber);color:#1a0d00;box-shadow:0 2px 14px rgba(245,166,35,0.40)}
+.seg-opt.on.c-green{background:var(--green);color:#001c0e;box-shadow:0 2px 14px rgba(0,217,120,0.35)}
+.seg-opt.on.c-rose{background:var(--rose);box-shadow:0 2px 14px rgba(255,61,107,0.40)}
+.seg-opt:disabled{opacity:0.32;cursor:not-allowed}
+/* select dropdown */
+.fsel{width:100%;height:44px;padding:0 36px 0 13px;border-radius:var(--r);border:1px solid var(--line2);background:var(--panel);color:var(--t1);font-family:var(--sans);font-size:13px;outline:none;transition:all var(--tf) var(--ease);-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a6090' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.fsel:focus{border-color:rgba(74,144,255,0.5);box-shadow:0 0 0 3px rgba(74,144,255,0.12)}
+.fsel.active{border-color:rgba(74,144,255,0.45);color:var(--blue2)}
+option{background:var(--panel);color:var(--t1)}
+/* Range slider */
+.range-row{display:flex;align-items:center;gap:13px}
+.frange{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:999px;background:var(--line2);cursor:pointer;outline:none}
+.frange::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--blue),0 0 14px rgba(74,144,255,0.55);cursor:pointer;transition:transform 0.1s}
+.frange::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.frange::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid var(--bg);cursor:pointer}
+.rval{min-width:32px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--blue2)}
+/* County chip cloud */
+.ccloud{display:flex;flex-wrap:wrap;gap:7px;max-height:180px;overflow-y:auto;padding:2px}
+.ccloud::-webkit-scrollbar{width:4px}
+.ccloud::-webkit-scrollbar-thumb{background:var(--line2);border-radius:999px}
+.cchip{padding:7px 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--t2);font-family:var(--mono);font-size:10px;font-weight:500;cursor:pointer;transition:all var(--tf) var(--ease);user-select:none;white-space:nowrap}
+.cchip:hover{border-color:var(--line3);color:var(--blue2);background:rgba(74,144,255,0.07)}
+.cchip.on{background:rgba(74,144,255,0.18);border-color:rgba(74,144,255,0.48);color:var(--blue2);font-weight:700;box-shadow:0 0 9px rgba(74,144,255,0.22)}
+/* Divider */
+.divider{height:1px;background:var(--line);margin:-4px 0}
+/* Saved list items */
+.saved-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);transition:all var(--tf) var(--ease);margin-bottom:8px}
+.saved-item:last-child{margin-bottom:0}
+.saved-item:hover{border-color:var(--line2);background:var(--surf2)}
+.saved-name{font-size:12px;font-weight:600;color:var(--t2)}
+.saved-meta{font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:3px}
+/* ── MAIN CONTENT AREA ── */
+.main-top{background:var(--surf);border:1px solid var(--line);border-radius:var(--rl);padding:13px 20px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tab-bar{display:flex;gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:var(--rl)}
+.tab-btn{height:36px;padding:0 20px;border:none;background:transparent;border-radius:10px;color:var(--t3);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all var(--tf) var(--ease);letter-spacing:0.02em}
+.tab-btn:hover{color:var(--t2)}
+.tab-btn.on{background:rgba(74,144,255,0.18);color:var(--blue2);box-shadow:0 0 14px rgba(74,144,255,0.15)}
+.toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stat-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:10px;color:var(--t3)}
+.stat-pill strong{color:var(--t1)}
+/* ── TABLE CARD ── */
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column}
+.tbar{padding:11px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,0.015)}
+.tbar-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;color:var(--t3)}
+.tbar-meta strong{color:var(--t2)}
+.sort-tag{padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:9px;color:var(--t3)}
+.kbd-hint{padding:2px 6px;border:1px solid var(--line2);border-radius:5px;font-family:var(--mono);font-size:9px;color:var(--t4)}
+.twrap{overflow:auto;flex:1}
+.twrap::-webkit-scrollbar{width:5px;height:5px}
+.twrap::-webkit-scrollbar-track{background:var(--panel)}
+.twrap::-webkit-scrollbar-thumb{background:var(--line2);border-radius:999px}
+/* Table */
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:10}
+th{padding:11px 16px;background:var(--panel);border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap;font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;color:var(--t3);cursor:pointer;user-select:none;transition:color var(--tf) var(--ease)}
+th:hover{color:var(--t2)}
+th.sa::after{content:" ▲";color:var(--blue2)}
+th.sd::after{content:" ▼";color:var(--blue2)}
+th[data-k]:not(.sa):not(.sd)::after{content:" ⇅";opacity:0.25}
+td{padding:13px 16px;border-top:1px solid rgba(90,140,255,0.045);font-size:12px;vertical-align:middle}
+tbody tr{cursor:pointer;transition:background 0.08s}
+tbody tr:hover td{background:rgba(74,144,255,0.05)}
+tbody tr.rsel td{background:rgba(74,144,255,0.10);border-top-color:rgba(74,144,255,0.14)}
+tbody tr.rsel:hover td{background:rgba(74,144,255,0.15)}
+.rin{animation:rowIn 0.18s ease-out both}
+@keyframes rowIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.pcheck{width:46px;padding-right:0}
+.rchk{width:18px;height:18px;cursor:pointer;accent-color:var(--blue)}
+.pname{font-weight:700;font-size:13px;color:var(--t1);margin-bottom:3px;line-height:1.3}
+.ptype{font-family:var(--mono);font-size:10px;color:var(--t3)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;border:1px solid transparent}
+.b-scl{background:rgba(74,144,255,0.14);border-color:rgba(74,144,255,0.30);color:var(--blue2)}
+.b-mpw{background:rgba(0,200,255,0.11);border-color:rgba(0,200,255,0.28);color:var(--sky2)}
+.b-act{background:rgba(0,217,120,0.11);border-color:rgba(0,217,120,0.28);color:var(--green2)}
+.b-ina{background:rgba(255,61,107,0.11);border-color:rgba(255,61,107,0.28);color:var(--rose2)}
+.b-unk{background:rgba(74,96,144,0.12);border-color:rgba(74,96,144,0.28);color:var(--t3)}
+.b-svc{background:rgba(153,102,255,0.14);border-color:rgba(153,102,255,0.32);color:var(--violet2);cursor:pointer;transition:all var(--tf)}
+.b-svc:hover{background:rgba(153,102,255,0.30)}
+.brow{display:flex;gap:4px;flex-wrap:wrap}
+mark{background:rgba(245,166,35,0.25);color:var(--amber2);border-radius:3px;padding:0 2px}
+.a-ph{color:var(--t1);text-decoration:none;font-family:var(--mono);font-size:11px;transition:color var(--tf)}
+.a-ph:hover{color:var(--sky2)}
+.a-em{color:var(--t2);text-decoration:none;font-family:var(--mono);font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;transition:color var(--tf)}
+.a-em:hover{color:var(--blue2)}
+.a-wb{color:var(--blue2);text-decoration:none;font-family:var(--mono);font-size:10px;transition:color var(--tf)}
+.a-wb:hover{color:var(--sky2);text-decoration:underline}
+.cdim{color:var(--t4);font-family:var(--mono);font-size:11px}
+.ctxt{font-family:var(--mono);font-size:10px;color:var(--t3);line-height:1.6}
+/* Pagination */
+.pagi{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);background:rgba(255,255,255,0.01)}
+.pagi-info{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.pagi-info strong{color:var(--t2)}
+.pagi-nav{display:flex;align-items:center;gap:6px}
+.page-jump{width:54px;height:32px;border-radius:var(--r);border:1px solid var(--line2);background:var(--panel);color:var(--t2);font-family:var(--mono);font-size:11px;text-align:center;outline:none;transition:all var(--tf)}
+.page-jump:focus{border-color:rgba(74,144,255,0.45)}
+/* Empty */
+.empty{padding:80px 24px;text-align:center}
+.empty-ico{font-size:54px;margin-bottom:16px;opacity:0.32}
+.empty-ttl{font-family:var(--serif);font-size:30px;font-weight:300;color:var(--t3);margin-bottom:10px}
+.empty-sub{font-family:var(--mono);font-size:11px;color:var(--t4);margin-bottom:20px}
+/* ── ANALYTICS ── */
+.a-body{padding:24px;display:flex;flex-direction:column;gap:28px}
+.a-sect-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.22em;color:var(--t3);margin-bottom:14px}
+.mix-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:800px){.mix-grid{grid-template-columns:repeat(2,1fr)}}
+.mix-card{border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;background:var(--panel)}
+.mix-lbl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.14em;color:var(--t3);margin-bottom:6px}
+.mix-val{font-family:var(--serif);font-size:36px;font-weight:300;transition:color 0.3s}
+.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:900px){.a-grid{grid-template-columns:1fr}}
+.barchart{display:flex;flex-direction:column;gap:9px}
+.bar-item{display:flex;align-items:center;gap:10px}
+.bar-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);width:145px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:6px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;transition:width 0.5s var(--ease)}
+.bf-b{background:linear-gradient(90deg,var(--blue),var(--sky))}.bf-t{background:linear-gradient(90deg,var(--teal),var(--sky))}.bf-a{background:var(--amber)}.bf-v{background:linear-gradient(90deg,var(--violet),var(--blue))}
+.bar-cnt{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--t2);min-width:30px;text-align:right}
+/* ── DRAWER ── */
+.dveil{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,20,0.65);backdrop-filter:blur(6px)}
+.dveil.open{display:block}
+.drawer{position:fixed;top:0;right:-830px;width:min(800px,96vw);height:100%;z-index:310;background:var(--surf);border-left:1px solid var(--line2);box-shadow:-16px 0 80px rgba(0,0,30,0.7);transition:right 0.28s var(--ease);display:flex;flex-direction:column}
+.drawer.open{right:0}
+.dr-head{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,0.02);flex-shrink:0}
+.dr-name{font-family:var(--serif);font-size:24px;font-weight:300;line-height:1.2}
+.dr-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.dr-actions{display:flex;gap:7px;flex-shrink:0;margin-top:2px}
+.dr-body{flex:1;overflow-y:auto;padding:24px 26px}
+.dr-body::-webkit-scrollbar{width:5px}
+.dr-body::-webkit-scrollbar-thumb{background:var(--line2);border-radius:999px}
+.dr-foot{padding:14px 26px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,0.02);flex-shrink:0}
+.dr-nav-info{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.d-grid{grid-template-columns:1fr}}
+.d-field{border:1px solid var(--line);border-radius:var(--r);padding:13px 16px;background:var(--panel)}
+.d-field.full{grid-column:1/-1}
+.d-lbl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.18em;color:var(--t3);margin-bottom:7px}
+.d-val{font-size:13px;color:var(--t1);line-height:1.5}
+.d-val.mono{font-family:var(--mono);font-size:11px}
+.svc-list{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.svc-entry{display:flex;align-items:center;gap:10px;padding:8px 13px;border-radius:var(--r);border:1px solid var(--line);background:rgba(153,102,255,0.04);font-size:12px;transition:all var(--tf)}
+.svc-entry:hover{border-color:rgba(153,102,255,0.25);background:rgba(153,102,255,0.09)}
+.svc-n{width:24px;height:24px;border-radius:50%;flex-shrink:0;background:rgba(153,102,255,0.18);border:1px solid rgba(153,102,255,0.35);display:grid;place-items:center;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--violet2)}
+.addr-entry{padding:11px 14px;border-radius:var(--r);border:1px solid var(--line);background:rgba(0,229,176,0.03);font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:6px}
+/* ── MODALS ── */
+.mveil{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,20,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center}
+.mveil.open{display:flex}
+.mbox{background:var(--surf);border:1px solid var(--line2);border-radius:var(--rl);box-shadow:var(--sh2);display:flex;flex-direction:column;width:min(680px,94vw);max-height:82vh;animation:mIn 0.2s var(--ease)}
+.mbox.wide{width:min(1100px,96vw)}
+@keyframes mIn{from{opacity:0;transform:scale(0.94) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.m-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.m-head h3{font-family:var(--serif);font-size:22px;font-weight:300}
+.m-body{padding:18px 22px;overflow-y:auto;flex:1}
+.m-body::-webkit-scrollbar{width:5px}
+.m-body::-webkit-scrollbar-thumb{background:var(--line2);border-radius:999px}
+/* Compare table */
+.cmptbl{width:100%;border-collapse:collapse}
+.cmptbl th,.cmptbl td{padding:10px 14px;border-top:1px solid var(--line);font-size:12px}
+.cmptbl thead th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.14em;color:var(--t3);background:var(--panel);border-top:none;border-bottom:1px solid var(--line2)}
+.cmptbl tbody th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--t3);text-align:left;white-space:nowrap;background:var(--panel);width:110px}
+.cmptbl tbody tr:hover td{background:rgba(74,144,255,0.04)}
+/* Col chooser */
+.col-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.col-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:all var(--tf)}
+.col-item:hover{border-color:var(--line2);background:var(--surf2)}
+.col-item input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.col-item label{font-size:12px;cursor:pointer;color:var(--t2);font-weight:500}
+/* Settings */
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.s-lbl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.18em;color:var(--t3);margin-bottom:7px;display:block}
+.s-hint{font-family:var(--mono);font-size:9px;color:var(--t4);margin-top:5px}
+/* About */
+.about-body{padding:36px}
+.about-ttl{font-family:var(--serif);font-size:42px;font-weight:300;line-height:1.1;margin-bottom:18px}
+.about-txt{font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1.95;max-width:700px}
+/* ── COMPARE BAR ── */
+.cmpbar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,12,25,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--line2);padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;transform:translateY(100%);transition:transform 0.26s var(--ease);box-shadow:0 -8px 40px rgba(0,0,30,0.6)}
+.cmpbar.open{transform:translateY(0)}
+.cmp-lbl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.18em;color:var(--t3);flex-shrink:0}
+.cmp-chips{display:flex;gap:7px;flex:1;flex-wrap:wrap}
+.cmp-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;background:rgba(74,144,255,0.14);border:1px solid rgba(74,144,255,0.35);color:var(--blue2);font-family:var(--mono);font-size:10px;font-weight:600}
+.cmp-x{background:none;border:none;color:var(--blue2);cursor:pointer;font-size:14px;transition:color var(--tf)}
+.cmp-x:hover{color:var(--rose2)}
+/* ── TOASTS ── */
+.thost{position:fixed;right:22px;bottom:88px;z-index:600;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+.toast{min-width:285px;max-width:390px;pointer-events:all;background:var(--surf2);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--sh2);padding:13px 16px;display:flex;gap:11px;align-items:flex-start;animation:tIn 0.2s var(--ease)}
+@keyframes tIn{from{transform:translateX(18px);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.toast.info .t-dot{background:var(--blue)}.toast.success .t-dot{background:var(--green)}.toast.error .t-dot{background:var(--rose)}
+.t-ttl{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.t-msg{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.t-cls{margin-left:auto;background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:0 2px;transition:color var(--tf);flex-shrink:0}
+.t-cls:hover{color:var(--t1)}
+/* Scrollbars global */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:999px}
+:focus-visible{outline:2px solid rgba(74,144,255,0.5);outline-offset:2px;border-radius:6px}
+.fade-in{animation:fadeIn 0.4s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
-    <div class="bg-grid"></div>
+<div class="bg-a"></div>
+<div class="bg-g"></div>
 
-    <div class="container">
-        <div class="brand">
-            <div class="brand-icon">🏢</div>
-            <h1>SCL Agency Name Scraper</h1>
-            <p>Extract and export agency names from the UK RedCAP survey form</p>
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#">
+      <div class="brand-gem">🏥</div>
+      <div>
+        <div class="brand-name">DBHDID Provider Intelligence</div>
+        <div class="brand-sub">Kentucky · SCL &amp; MPW Registry</div>
+      </div>
+    </a>
+    <div style="flex:1;display:flex;justify-content:center">
+      <div class="spill" id="spill"><div class="spill-dot"></div><span id="spillTxt">Ready — press Fetch Data to load</span></div>
+    </div>
+    <div class="tbar-right">
+      <button class="btn ico" id="btnTheme" title="Toggle theme">☾</button>
+      <button class="btn ico" id="btnSettings" title="Settings">⚙</button>
+      <button class="btn primary" id="btnFetch">↻ Fetch Data</button>
+      <button class="btn excel" id="btnXlsx" disabled>↓ Excel</button>
+      <button class="btn csv"   id="btnCsv"  disabled>↓ CSV</button>
+      <button class="btn pdf"   id="btnPdf"  disabled>↓ PDF</button>
+      <button class="btn"       id="btnJson" disabled style="font-size:12px">↓ JSON</button>
+    </div>
+  </div>
+</header>
+<div class="prog-strip" id="pstrip"><div class="prog-fill" id="pfill"></div></div>
+
+<!-- SHELL -->
+<div class="shell fade-in">
+
+  <!-- KPI ROW -->
+  <div class="row-kpi">
+    <div class="kpi-row">
+      <div class="kpi kpi-blue">
+        <div class="kpi-eye">Total Providers</div>
+        <div class="kpi-num" id="kpiT">—</div>
+        <div class="kpi-cap" id="kpiTcap">awaiting fetch</div>
+        <div class="kpi-track"><div class="kpi-fill" id="kpiTbar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi kpi-sky">
+        <div class="kpi-eye">Showing (Filtered)</div>
+        <div class="kpi-num" id="kpiS">—</div>
+        <div class="kpi-cap" id="kpiScap">apply filters</div>
+        <div class="kpi-track"><div class="kpi-fill" id="kpiSbar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi kpi-teal">
+        <div class="kpi-eye">SCL Providers</div>
+        <div class="kpi-num" id="kpiSCL">—</div>
+        <div class="kpi-cap">Supports for Community Living</div>
+        <div class="kpi-track"><div class="kpi-fill" id="kpiSCLbar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi kpi-amb">
+        <div class="kpi-eye">MPW Providers</div>
+        <div class="kpi-num" id="kpiMPW">—</div>
+        <div class="kpi-cap">Michelle P. Waiver</div>
+        <div class="kpi-track"><div class="kpi-fill" id="kpiMPWbar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi kpi-grn">
+        <div class="kpi-eye">Active (filtered)</div>
+        <div class="kpi-num" id="kpiA">—</div>
+        <div class="kpi-cap" id="kpiAcap">load data first</div>
+        <div class="kpi-track"><div class="kpi-fill" id="kpiAbar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE FILTER BAR -->
+  <div class="row-afbar">
+    <div class="afbar">
+      <span class="afbar-label" id="afLabel">Load data to begin filtering.</span>
+      <div class="afbar-pills" id="afPills"></div>
+      <button class="afbar-clear" id="btnClearAll" style="display:none">✕ Clear all</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="col-side">
+    <div class="sidebar">
+
+      <!-- FILTERS CARD -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><div class="tick t-blue"></div>Filters</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--t3)">Results: <strong style="color:var(--blue2)" id="filtCnt">—</strong></span>
+            <button class="btn sm" id="btnClearFilters">Clear</button>
+          </div>
         </div>
+        <div class="card-body">
 
-        <div class="card">
-            <!-- Instructions Section -->
-            <div class="card-section">
-                <div class="section-header">
-                    <div class="section-icon">📋</div>
-                    <h2>Instructions</h2>
-                </div>
-                <div class="instructions">
-                    <ol>
-                        <li>Open this tool. It will automatically fetch the latest survey HTML via the secure proxy.</li>
-                        <li>Wait for the confirmation message, then review the <strong>Extracted Agencies</strong> section below.</li>
-                        <li>Use search and filters to find what you need, then export to Excel if desired.</li>
-                        <li>If you want to inspect the raw HTML used for extraction, click <strong>Show HTML Source</strong>.</li>
-                        <li>If the agency list ever looks out of date, click <strong>Reload from Proxy</strong> to refresh.</li>
-                    </ol>
-                </div>
+          <!-- Search -->
+          <div class="fgrp">
+            <div class="flbl">Search</div>
+            <div class="fw">
+              <span class="fi-icon">⌕</span>
+              <input class="finput" id="searchInp" placeholder="Name, phone, county, service…" autocomplete="off">
+              <button class="fi-clear" id="searchClr">✕</button>
             </div>
+          </div>
 
-            <!-- Input Section -->
-            <div class="card-section">
-                <div class="section-header">
-                    <div class="section-icon">📄</div>
-                    <h2>HTML Source Input</h2>
-                </div>
-                <div class="input-wrapper">
-                    <label class="input-label">HTML source returned by the proxy (optional):</label>
-                    <div class="btn-row" style="margin-top:0.25rem; justify-content:flex-start;">
-    <button class="btn btn-secondary" onclick="toggleHtmlSource(this)">Show HTML Source</button>
+          <!-- Program -->
+          <div class="fgrp">
+            <div class="flbl">Program <span class="fhint" id="hProg"></span></div>
+            <div class="seg c4" id="segProg">
+              <button class="seg-opt on c-blue" data-v="ALL">All</button>
+              <button class="seg-opt" data-v="SCL">SCL</button>
+              <button class="seg-opt" data-v="MPW">MPW</button>
+              <button class="seg-opt" data-v="BOTH">Both</button>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="fgrp">
+            <div class="flbl">Status <span class="fhint" id="hStat"></span></div>
+            <div class="seg c3" id="segStat">
+              <button class="seg-opt on c-blue"  data-v="ALL">All</button>
+              <button class="seg-opt c-green"    data-v="Active">Active</button>
+              <button class="seg-opt c-rose"     data-v="Inactive">Inactive</button>
+            </div>
+          </div>
+
+          <!-- Provider Type -->
+          <div class="fgrp">
+            <div class="flbl">Provider Type <span class="fhint" id="hType"></span></div>
+            <select class="fsel" id="typeFilter"><option value="ALL">All types</option></select>
+          </div>
+
+          <!-- Website -->
+          <div class="fgrp">
+            <div class="flbl">Website</div>
+            <div class="seg c3" id="segWeb">
+              <button class="seg-opt on c-blue"  data-v="ALL">Any</button>
+              <button class="seg-opt c-teal"     data-v="YES">Has site</button>
+              <button class="seg-opt c-amber"    data-v="NO">No site</button>
+            </div>
+          </div>
+
+          <!-- Min Services -->
+          <div class="fgrp">
+            <div class="flbl">Min Services <span class="fhint" id="hSvc"></span></div>
+            <div class="range-row">
+              <input class="frange" type="range" id="minSvc" min="0" max="30" value="0">
+              <div class="rval" id="rval">0</div>
+            </div>
+          </div>
+
+          <!-- Counties -->
+          <div class="fgrp">
+            <div class="flbl">Counties <span class="fhint" id="hCounty"></span></div>
+            <div class="fw" style="margin-bottom:9px">
+              <span class="fi-icon" style="font-size:13px">⌕</span>
+              <input class="finput" id="countySearch" placeholder="Filter counties…" autocomplete="off" style="height:38px;font-size:12px">
+            </div>
+            <div class="ccloud" id="countyCloud">
+              <span style="font-family:var(--mono);font-size:10px;color:var(--t4)">Load data to see counties</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Rows / page -->
+          <div class="fgrp">
+            <div class="flbl">Rows Per Page</div>
+            <select class="fsel" id="psz">
+              <option value="25">25 per page</option>
+              <option value="50" selected>50 per page</option>
+              <option value="100">100 per page</option>
+              <option value="250">250 per page</option>
+              <option value="9999">All rows</option>
+            </select>
+          </div>
+
+          <!-- Export scope -->
+          <div class="fgrp">
+            <div class="flbl">Export Scope</div>
+            <div class="seg c2" id="segScope">
+              <button class="seg-opt on c-blue" data-v="filtered">Filtered results</button>
+              <button class="seg-opt"           data-v="all">All data</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SAVED LISTS CARD -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><div class="tick t-teal"></div>Saved Filter Sets</div>
+          <button class="btn sm" id="btnSave">+ Save current</button>
+        </div>
+        <div class="card-body" id="savedBody" style="gap:0">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--t4)">Save your current filter state to reload it later.</span>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- MAIN PANE -->
+  <main class="col-main">
+
+    <!-- Tab bar + toolbar -->
+    <div class="main-top">
+      <div class="tab-bar" id="mainTabs">
+        <button class="tab-btn on" data-tab="dir">Directory</button>
+        <button class="tab-btn"    data-tab="analytics">Analytics</button>
+        <button class="tab-btn"    data-tab="about">About</button>
+      </div>
+      <div class="toolbar-right">
+        <div class="stat-pill">Shown <strong id="bShown">—</strong></div>
+        <div class="stat-pill">Total <strong id="bTotal">—</strong></div>
+        <div class="stat-pill">Raw   <strong id="bRaw">—</strong></div>
+        <button class="btn sm" id="btnCols">Columns ▾</button>
+        <button class="btn sm" id="btnCopyTsv">Copy TSV</button>
+        <button class="btn sm" id="btnSelPage">☐ Sel. page</button>
+        <button class="btn sm ico" id="btnCmpOpen" title="Compare selected (0)">⚖</button>
+      </div>
+    </div>
+
+    <!-- DIRECTORY TAB -->
+    <div id="tabDir" class="tcard">
+      <div class="tbar">
+        <div class="tbar-meta">
+          Page <strong id="pgNum">1</strong> of <strong id="pgCnt">1</strong>
+          <span class="sort-tag" id="sortTag">Provider ↑</span>
+          <span><span class="kbd-hint">/ search</span> <span class="kbd-hint">Enter fetch</span> <span class="kbd-hint">Esc close</span> <span class="kbd-hint">← → navigate</span></span>
+        </div>
+      </div>
+
+      <div class="twrap" id="twrap">
+        <table>
+          <thead id="thead">
+            <tr>
+              <th class="pcheck"><input type="checkbox" class="rchk" id="chkAll" title="Select / deselect page"></th>
+              <th data-k="Provider" class="sa" style="min-width:220px">Provider</th>
+              <th data-k="Programs"        style="min-width:110px">Programs</th>
+              <th data-k="ProviderType"    style="min-width:145px">Type</th>
+              <th data-k="Phone"           style="min-width:135px">Phone</th>
+              <th data-k="Email"           style="min-width:190px">Contact</th>
+              <th data-k="Counties"        style="min-width:150px">Counties</th>
+              <th data-k="ServicesCount"   style="min-width:80px;text-align:center">Svcs</th>
+              <th data-k="AddressSummary"  style="min-width:185px">Address</th>
+              <th data-k="Active"          style="min-width:90px">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="10"><div class="empty">
+              <div class="empty-ico">🏥</div>
+              <div class="empty-ttl">No data loaded</div>
+              <div class="empty-sub">Click Fetch Data to pull the live DBHDID provider directory</div>
+              <button class="btn primary" onclick="loadData()">↻ Fetch Data Now</button>
+            </div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagi">
+        <div class="pagi-info" id="pInfo">—</div>
+        <div class="pagi-nav">
+          <button class="btn sm" id="pgFirst" disabled>«</button>
+          <button class="btn sm" id="pgPrev"  disabled>‹ Prev</button>
+          <input  class="page-jump" id="pgInp" type="number" min="1" value="1" title="Jump to page">
+          <button class="btn sm" id="pgNext"  disabled>Next ›</button>
+          <button class="btn sm" id="pgLast"  disabled>»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div id="tabAnalytics" style="display:none">
+      <div class="tcard">
+        <div class="tbar"><span style="font-family:var(--mono);font-size:10px;color:var(--t3)">Live analytics — updates with every filter change, reflecting only currently shown providers</span></div>
+        <div class="a-body">
+          <div>
+            <div class="a-sect-label">Program Distribution</div>
+            <div class="mix-grid">
+              <div class="mix-card"><div class="mix-lbl">SCL Only</div><div class="mix-val" id="aSCLo" style="color:var(--blue2)">—</div></div>
+              <div class="mix-card"><div class="mix-lbl">MPW Only</div><div class="mix-val" id="aMPWo" style="color:var(--sky2)">—</div></div>
+              <div class="mix-card"><div class="mix-lbl">SCL + MPW</div><div class="mix-val" id="aBoth" style="color:var(--teal2)">—</div></div>
+              <div class="mix-card"><div class="mix-lbl">Inactive</div><div class="mix-val" id="aInact" style="color:var(--rose2)">—</div></div>
+            </div>
+          </div>
+          <div class="a-grid">
+            <div><div class="a-sect-label">Top Counties</div><div class="barchart" id="aC"></div></div>
+            <div><div class="a-sect-label">Top Services</div><div class="barchart" id="aS"></div></div>
+            <div><div class="a-sect-label">Provider Types</div><div class="barchart" id="aT"></div></div>
+            <div><div class="a-sect-label">Area Code Coverage</div><div class="barchart" id="aAC"></div></div>
+          </div>
+          <div><div class="a-sect-label">Service Count Distribution</div><div class="barchart" id="aSD"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT TAB -->
+    <div id="tabAbout" style="display:none">
+      <div class="tcard">
+        <div class="about-body">
+          <div class="about-ttl">DBHDID<br>Provider Intelligence</div>
+          <div class="about-txt">
+            <p>A fully reactive provider directory for Kentucky's Department for Behavioral Health, Developmental, and Intellectual Disabilities. Pulls live SCL and MPW registry data via Cloudflare Worker proxy.</p>
+            <p style="margin-top:14px">Every interaction — search, program buttons, status toggle, type dropdown, website filter, service count slider, county chips — simultaneously updates all five KPI cards, the table, pagination, analytics charts, and the active-filter strip with zero delay.</p>
+            <p style="margin-top:14px">Worker: <strong id="aboutW" style="color:var(--blue2)">https://providerdirectory.patrick-44b.workers.dev</strong></p>
+          </div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:22px">
+            <span class="badge b-scl">Vanilla JS ES2022</span>
+            <span class="badge b-mpw">SheetJS XLSX</span>
+            <span class="badge b-act">jsPDF + AutoTable</span>
+            <span class="badge b-svc">Cloudflare Workers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /shell -->
+
+<!-- DRAWER -->
+<div class="dveil" id="dveil"></div>
+<div class="drawer" id="drawer">
+  <div class="dr-head">
+    <div style="flex:1">
+      <div class="dr-name" id="drName">—</div>
+      <div class="dr-badges" id="drBadges"></div>
+    </div>
+    <div class="dr-actions">
+      <button class="btn sm" id="btnDrCmp">⚖ Compare</button>
+      <button class="btn sm ico" id="btnDrClose">✕</button>
+    </div>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot">
+    <div style="display:flex;gap:7px">
+      <button class="btn sm" id="btnDrPrev">‹ Prev</button>
+      <button class="btn sm" id="btnDrNext">Next ›</button>
+    </div>
+    <div class="dr-nav-info" id="drNavInfo"></div>
+    <button class="btn sm csv" id="btnDrExp">↓ Export provider</button>
+  </div>
 </div>
-<textarea id="htmlInput" placeholder="Paste the HTML source code here...&#10;&#10;Tip: After viewing page source, use Ctrl+A to select all, then Ctrl+C to copy." readonly style="display:none; margin-top:0.75rem;"></textarea>
-                </div>
-                <div class="btn-row">
-                    <button class="btn btn-accent btn-lg" onclick="loadHtmlViaProxy()">
-                        <span>🌐</span> Reload from Proxy
-                    </button>
-<button class="btn btn-ghost" onclick="toggleSettings()">
-                        <span>⚙️</span> Settings
-                    </button>
-                    <button class="btn btn-danger" onclick="clearAll()">
-                        <span>🗑️</span> Clear All
-                    </button>
-                </div>
 
-                <!-- Settings Panel -->
-                <div class="settings-panel" id="settingsPanel">
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="removeParens" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Remove parenthetical text
-                                <small>Strip content inside () from names</small>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="uniqueOnly">
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Show unique only
-                                <small>Remove duplicate agency names</small>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="sortAlpha" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Sort alphabetically
-                                <small>Order agencies A to Z</small>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="trimWhitespace" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Trim extra whitespace
-                                <small>Clean up spacing in names</small>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="removeEmpty" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Remove empty entries
-                                <small>Filter out blank lines</small>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle">
-                                <input type="checkbox" id="includeTimestamp">
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="setting-label">
-                                Include timestamp in exports
-                                <small>Add extraction date to files</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats Section -->
-            <div class="card-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalCount">0</div>
-                        <div class="stat-label">Total Found</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="uniqueCount">0</div>
-                        <div class="stat-label">Unique Agencies</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="displayedCount">0</div>
-                        <div class="stat-label">Displayed</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Section -->
-            <div class="card-section results-section" id="resultsSection">
-                <div class="section-header">
-                    <div class="section-icon">📊</div>
-                    <h2>Extracted Agencies</h2>
-                </div>
-
-                <div class="filter-bar">
-                    <div class="search-wrapper">
-                        <span class="search-icon">🔎</span>
-                        <input type="text" class="search-input" id="searchInput" placeholder="Search agencies..." oninput="filterResults()">
-                    </div>
-                </div>
-
-                <!-- Export Panel -->
-                <div class="export-panel">
-                    <div class="export-header">
-                        <span>📥</span> Export Options
-                    </div>
-                    <div class="export-buttons">
-                        <button class="btn btn-success" onclick="exportCSV()">
-                            <span>📊</span> CSV
-                        </button>
-                        <button class="btn btn-warning" onclick="exportXLSX()">
-                            <span>📗</span> Excel (XLSX)
-                        </button>
-                        <button class="btn btn-purple" onclick="exportJSON()">
-                            <span>📦</span> JSON
-                        </button>
-                        <button class="btn btn-accent" onclick="exportTXT()">
-                            <span>📝</span> Text (TXT)
-                        </button>
-                        <button class="btn btn-pink" onclick="exportPDF()">
-                            <span>📑</span> PDF
-                        </button>
-                        <button class="btn btn-ghost" onclick="copyToClipboard()">
-                            <span>📋</span> Copy All
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Results Table -->
-                <div class="table-wrapper">
-                    <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="row-num">#</th>
-                                    <th>Agency Name</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsBody">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="footer">
-                <p>© 2025 <strong>Accelerate Solutions, LLC</strong>. All rights reserved.</p>
-            </div>
+<!-- MODALS -->
+<div class="mveil" id="svcVeil">
+  <div class="mbox">
+    <div class="m-head"><h3 id="svcTitle">Services</h3><button class="btn ico sm" id="svcClose">✕</button></div>
+    <div class="m-body" id="svcBody"></div>
+  </div>
+</div>
+<div class="mveil" id="cmpVeil">
+  <div class="mbox wide">
+    <div class="m-head"><h3>Provider Comparison</h3><button class="btn ico sm" id="cmpClose">✕</button></div>
+    <div class="m-body" id="cmpBody"></div>
+  </div>
+</div>
+<div class="mveil" id="colVeil">
+  <div class="mbox" style="max-width:500px">
+    <div class="m-head"><h3>Choose Columns</h3><button class="btn ico sm" id="colClose">✕</button></div>
+    <div class="m-body">
+      <div class="col-grid" id="colGrid"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn excel sm" id="colApply">Apply columns</button>
+        <button class="btn sm" id="colReset">Reset defaults</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mveil" id="setVeil">
+  <div class="mbox" style="max-width:540px">
+    <div class="m-head"><h3>Settings</h3><button class="btn ico sm" id="setClose">✕</button></div>
+    <div class="m-body" style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <label class="s-lbl">Worker Base URL</label>
+        <input class="finput" id="sWorker" style="padding-left:13px" value="https://providerdirectory.patrick-44b.workers.dev">
+        <div class="s-hint">Cloudflare Worker proxying the live DBHDID API.</div>
+      </div>
+      <div class="s-grid">
+        <div><label class="s-lbl">Deduplication Mode</label>
+          <select class="fsel" id="sDedupe">
+            <option value="balanced">Balanced (recommended)</option>
+            <option value="strict">Strict (name only)</option>
+            <option value="lenient">Lenient</option>
+          </select>
         </div>
+        <div><label class="s-lbl">Auto-fetch on load</label>
+          <select class="fsel" id="sAuto">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+      </div>
+      <div><label class="s-lbl">Excel: Include Addresses Sheet</label>
+        <select class="fsel" id="sAddr">
+          <option value="true">Yes — full address breakdown</option>
+          <option value="false">No — providers only</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn excel sm" id="setSave">Save &amp; Close</button>
+        <button class="btn sm" id="setCancel">Cancel</button>
+      </div>
     </div>
-
-    <div class="toast" id="toast">
-        <span class="toast-icon"></span>
-        <span class="toast-message"></span>
-    </div>
-
-    <script>
-        // =============================================================================
-        // PROXY CONFIGURATION
-        // =============================================================================
-        // This Cloudflare Worker returns the REDCap survey HTML with permissive CORS headers.
-        // Your app can safely fetch from this URL (instead of asking users to copy/paste page source).
-        const PROXY_URL = "https://agencylist.patrick-44b.workers.dev/";
-
-        /**
-         * Fetches the REDCap survey HTML via the Cloudflare Worker proxy, populates the HTML textarea,
-         * and then runs the existing extraction logic.
-         */
-        async function loadHtmlViaProxy() {
-            const textarea = document.getElementById('htmlInput');
-            const btns = document.querySelectorAll('.btn-row button');
-
-            try {
-                // Disable buttons briefly to prevent double-click races
-                btns.forEach(b => b.disabled = true);
-                showToast('Fetching HTML via proxy…', 'success');
-
-                const resp = await fetch(PROXY_URL, { method: 'GET' });
-                const html = await resp.text();
-
-                // Always populate the textarea so you can inspect the returned HTML on failure.
-                textarea.value = html || '';
-
-                if (!resp.ok) {
-                    showToast(`Proxy returned HTTP ${resp.status}. See HTML box for details.`, 'error');
-                    return;
-                }
-
-                showToast('HTML loaded. Extracting agencies…', 'success');
-                extractAgencies();
-
-                // After extraction, scroll so "Extracted Agencies" is visible
-                scrollToResultsSection();
-} catch (err) {
-                showToast('Failed to fetch via proxy (network error).', 'error');
-            } finally {
-                btns.forEach(b => b.disabled = false);
-            }
-        }
-
-
-
-        function scrollToResultsSection() {
-            const el = document.getElementById('resultsSection');
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-
-        function toggleHtmlSource(btnEl) {
-            const textarea = document.getElementById('htmlInput');
-            const btn = btnEl;
-            const isHidden = textarea.style.display === 'none' || textarea.style.display === '';
-            textarea.style.display = isHidden ? 'block' : 'none';
-            if (btn) btn.textContent = isHidden ? 'Hide HTML Source' : 'Show HTML Source';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Auto-load on page load
-            loadHtmlViaProxy();
-        });
-
-        let allAgencies = [];
-        let rawAgencies = [];
-        let filteredAgencies = [];
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = toast.querySelector('.toast-icon');
-            const msg = toast.querySelector('.toast-message');
-            
-            icon.textContent = type === 'success' ? '✓' : '✗';
-            msg.textContent = message;
-            toast.className = 'toast ' + type;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3500);
-        }
-
-        function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('visible');
-        }
-
-        function processAgencyName(name) {
-            let processed = name;
-            
-            // Trim whitespace
-            if (document.getElementById('trimWhitespace').checked) {
-                processed = processed.replace(/\s+/g, ' ').trim();
-            }
-            
-            // Remove parenthetical content
-            if (document.getElementById('removeParens').checked) {
-                processed = processed.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
-            }
-            
-            return processed;
-        }
-
-        function extractAgencies() {
-            const html = document.getElementById('htmlInput').value;
-            
-            if (!html.trim()) {
-                showToast('Please paste the HTML source code first', 'error');
-                return;
-            }
-
-            rawAgencies = [];
-            
-            // Create a DOM parser
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            // Method 1: Look for checkbox labels (most common pattern in REDCap)
-            const labels = doc.querySelectorAll('label');
-            labels.forEach(label => {
-                const text = label.textContent.trim();
-                // Filter out common non-agency labels
-                if (text && 
-                    text.length > 2 && 
-                    !text.toLowerCase().includes('yes') && 
-                    !text.toLowerCase().includes('no') &&
-                    !text.toLowerCase().includes('reset') &&
-                    !text.toLowerCase().includes('must provide') &&
-                    !text.toLowerCase().includes('employee') &&
-                    !text.toLowerCase().includes('choose') &&
-                    !text.toLowerCase().includes('please') &&
-                    !text.toLowerCase().includes('submit') &&
-                    !text.toLowerCase().match(/^(new|share|move)$/i)) {
-                    
-                    // Check if this looks like an agency name (contains letters)
-                    if (/[A-Za-z]{2,}/.test(text)) {
-                        rawAgencies.push(text);
-                    }
-                }
-            });
-
-            // Method 2: Look for checkbox inputs with agency-related patterns
-            if (rawAgencies.length === 0) {
-                const checkboxes = doc.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(checkbox => {
-                    const label = checkbox.nextElementSibling || checkbox.parentElement;
-                    if (label) {
-                        const text = label.textContent.trim();
-                        if (text && text.length > 3) {
-                            rawAgencies.push(text);
-                        }
-                    }
-                });
-            }
-
-            // Method 3: Look for list items that might contain agency names
-            if (rawAgencies.length === 0) {
-                const listItems = doc.querySelectorAll('li, option');
-                listItems.forEach(item => {
-                    const text = item.textContent.trim();
-                    if (text && text.length > 3 && /[A-Za-z]{2,}/.test(text)) {
-                        rawAgencies.push(text);
-                    }
-                });
-            }
-
-            // Clean up the results
-            rawAgencies = rawAgencies.filter(name => {
-                // Remove very short names
-                if (name.length < 3) return false;
-                // Remove HTML tags if any slipped through
-                if (/<[^>]*>/.test(name)) return false;
-                // Keep reasonable length names
-                if (name.length > 200) return false;
-                return true;
-            });
-
-            if (rawAgencies.length === 0) {
-                showToast('No agencies found. Make sure you copied the complete page source after selecting "Yes" for SHARE', 'error');
-                return;
-            }
-
-            // Process the agencies with current settings
-            applyProcessing();
-            
-            showToast(`Found ${rawAgencies.length} agencies!`, 'success');
-            document.getElementById('resultsSection').classList.add('visible');
-        }
-
-        function applyProcessing() {
-            // Process each agency name
-            allAgencies = rawAgencies.map(name => processAgencyName(name));
-            
-            // Remove empty entries if enabled
-            if (document.getElementById('removeEmpty').checked) {
-                allAgencies = allAgencies.filter(name => name.length > 0);
-            }
-            
-            updateStats();
-            filterResults();
-        }
-
-        function getUniqueAgencies(agencies) {
-            return [...new Set(agencies)];
-        }
-
-        function updateStats() {
-            document.getElementById('totalCount').textContent = allAgencies.length;
-            document.getElementById('uniqueCount').textContent = getUniqueAgencies(allAgencies).length;
-        }
-
-        function filterResults() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const uniqueOnly = document.getElementById('uniqueOnly').checked;
-            const sortAlpha = document.getElementById('sortAlpha').checked;
-
-            // Re-process from raw if settings changed
-            if (rawAgencies.length > 0) {
-                allAgencies = rawAgencies.map(name => processAgencyName(name));
-                if (document.getElementById('removeEmpty').checked) {
-                    allAgencies = allAgencies.filter(name => name.length > 0);
-                }
-            }
-
-            // Start with all or unique
-            filteredAgencies = uniqueOnly ? getUniqueAgencies(allAgencies) : [...allAgencies];
-
-            // Apply search filter
-            if (searchTerm) {
-                filteredAgencies = filteredAgencies.filter(agency => 
-                    agency.toLowerCase().includes(searchTerm)
-                );
-            }
-
-            // Sort if needed
-            if (sortAlpha) {
-                filteredAgencies.sort((a, b) => a.localeCompare(b));
-            }
-
-            // Update stats
-            document.getElementById('totalCount').textContent = allAgencies.length;
-            document.getElementById('uniqueCount').textContent = getUniqueAgencies(allAgencies).length;
-            document.getElementById('displayedCount').textContent = filteredAgencies.length;
-            
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('resultsBody');
-            
-            if (filteredAgencies.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="2" class="no-results">
-                            <div class="no-results-icon">🔍</div>
-                            <div>No agencies match your search</div>
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filteredAgencies.map((agency, index) => `
-                <tr>
-                    <td class="row-num">${index + 1}</td>
-                    <td>${escapeHtml(agency)}</td>
-                </tr>
-            `).join('');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function getExportData() {
-            return filteredAgencies;
-        }
-
-        function getTimestamp() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function exportCSV() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to export', 'error');
-                return;
-            }
-
-            let csvContent = data.map(agency => 
-                `"${agency.replace(/"/g, '""')}"`
-            ).join('\n');
-
-            if (document.getElementById('includeTimestamp').checked) {
-                csvContent = `"Exported: ${getTimestamp()}"\n\n` + csvContent;
-            }
-
-            downloadFile(csvContent, `scl_agencies_${getTimestamp()}.csv`, 'text/csv');
-            setTimeout(() => showToast('CSV downloaded successfully!', 'success'), 300);
-        }
-
-        function exportXLSX() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to export', 'error');
-                return;
-            }
-
-            const wb = XLSX.utils.book_new();
-            const wsData = data.map(agency => [agency]);
-
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Set column widths
-            ws['!cols'] = [
-                { wch: 70 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, ws, 'SCL Agencies');
-
-            // Add metadata sheet if timestamp enabled
-            if (document.getElementById('includeTimestamp').checked) {
-                const metaData = [
-                    ['SCL Agency Name Export'],
-                    [''],
-                    ['Export Date', new Date().toLocaleString()],
-                    ['Total Agencies', data.length],
-                    ['Source', 'UK RedCAP Survey'],
-                    [''],
-                    ['© 2025 Accelerate Solutions, LLC']
-                ];
-                const metaWs = XLSX.utils.aoa_to_sheet(metaData);
-                XLSX.utils.book_append_sheet(wb, metaWs, 'Export Info');
-            }
-
-            XLSX.writeFile(wb, `scl_agencies_${getTimestamp()}.xlsx`);
-            setTimeout(() => showToast('Excel file downloaded successfully!', 'success'), 300);
-        }
-
-        function exportJSON() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to export', 'error');
-                return;
-            }
-
-            const jsonObj = {
-                agencies: data,
-                count: data.length
-            };
-
-            if (document.getElementById('includeTimestamp').checked) {
-                jsonObj.exportDate = new Date().toISOString();
-                jsonObj.source = 'UK RedCAP SCL Agency Survey';
-            }
-
-            const jsonContent = JSON.stringify(jsonObj, null, 2);
-            downloadFile(jsonContent, `scl_agencies_${getTimestamp()}.json`, 'application/json');
-            setTimeout(() => showToast('JSON downloaded successfully!', 'success'), 300);
-        }
-
-        function exportTXT() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to export', 'error');
-                return;
-            }
-
-            let txtContent = '';
-            
-            if (document.getElementById('includeTimestamp').checked) {
-                txtContent = `SCL Agency Names\nExported: ${new Date().toLocaleString()}\nTotal: ${data.length} agencies\n${'='.repeat(50)}\n\n`;
-            }
-
-            txtContent += data.join('\n');
-
-            if (document.getElementById('includeTimestamp').checked) {
-                txtContent += `\n\n${'='.repeat(50)}\n© 2025 Accelerate Solutions, LLC`;
-            }
-
-            downloadFile(txtContent, `scl_agencies_${getTimestamp()}.txt`, 'text/plain');
-            setTimeout(() => showToast('Text file downloaded successfully!', 'success'), 300);
-        }
-
-        function exportPDF() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to export', 'error');
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Title
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('SCL Agency Names', 105, 20, { align: 'center' });
-            
-            // Subtitle with count
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(100);
-            doc.text(`${data.length} agencies exported`, 105, 28, { align: 'center' });
-            
-            if (document.getElementById('includeTimestamp').checked) {
-                doc.setFontSize(9);
-                doc.text(`Exported: ${new Date().toLocaleString()}`, 105, 34, { align: 'center' });
-            }
-            
-            // Line
-            doc.setDrawColor(200);
-            doc.line(20, 40, 190, 40);
-            
-            // Agency list
-            doc.setFontSize(10);
-            doc.setTextColor(0);
-            let y = 50;
-            const lineHeight = 6;
-            const pageHeight = 280;
-            const margin = 20;
-            
-            data.forEach((agency, index) => {
-                if (y > pageHeight) {
-                    doc.addPage();
-                    y = 20;
-                }
-                
-                // Number
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(150);
-                doc.text(`${index + 1}.`, margin, y);
-                
-                // Agency name
-                doc.setTextColor(0);
-                const maxWidth = 160;
-                const lines = doc.splitTextToSize(agency, maxWidth);
-                doc.text(lines, margin + 12, y);
-                
-                y += lineHeight * lines.length;
-            });
-            
-            // Footer on last page
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`© 2025 Accelerate Solutions, LLC`, 105, 290, { align: 'center' });
-                doc.text(`Page ${i} of ${pageCount}`, 190, 290, { align: 'right' });
-            }
-            
-            doc.save(`scl_agencies_${getTimestamp()}.pdf`);
-            setTimeout(() => showToast('PDF downloaded successfully!', 'success'), 300);
-        }
-
-        function downloadFile(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function copyToClipboard() {
-            const data = getExportData();
-            if (data.length === 0) {
-                showToast('No agencies to copy', 'error');
-                return;
-            }
-
-            const text = data.join('\n');
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(`${data.length} agencies copied to clipboard!`, 'success');
-            }).catch(() => {
-                showToast('Failed to copy to clipboard', 'error');
-            });
-        }
-
-        function clearAll() {
-            document.getElementById('htmlInput').value = '';
-            document.getElementById('searchInput').value = '';
-            allAgencies = [];
-            rawAgencies = [];
-            filteredAgencies = [];
-            document.getElementById('totalCount').textContent = '0';
-            document.getElementById('displayedCount').textContent = '0';
-            document.getElementById('uniqueCount').textContent = '0';
-            document.getElementById('resultsBody').innerHTML = '';
-            document.getElementById('resultsSection').classList.remove('visible');
-            showToast('All data cleared', 'success');
-        }
-
-        // Add event listeners for settings changes
-        document.querySelectorAll('.settings-panel input').forEach(input => {
-            input.addEventListener('change', () => {
-                if (rawAgencies.length > 0) {
-                    filterResults();
-                }
-            });
-        });
-
-        // Auto-extract when pasting into textarea
-        document.getElementById('htmlInput').addEventListener('paste', function(e) {
-            setTimeout(() => {
-                if (this.value.trim().length > 0) {
-                    extractAgencies();
-                }
-            }, 100);
-        });
-
-        // Focus textarea on paste anywhere
-        document.addEventListener('paste', function(e) {
-            const textarea = document.getElementById('htmlInput');
-            if (document.activeElement !== textarea && !document.activeElement.matches('input')) {
-                textarea.focus();
-            }
-        });
-    </script>
+  </div>
+</div>
+
+<!-- COMPARE BAR -->
+<div class="cmpbar" id="cmpbar">
+  <div class="cmp-lbl">Comparing</div>
+  <div class="cmp-chips" id="cmpChips"></div>
+  <button class="btn primary sm" id="btnCmpView">View Side-by-Side ▸</button>
+  <button class="btn sm" id="btnCmpClear">Clear all</button>
+</div>
+
+<!-- TOAST HOST -->
+<div class="thost" id="thost"></div>
+
+<script>
+'use strict';
+
+/* ── STATE ─────────────────────────────────────────────── */
+let providers=[], filtered=[], rawCombined=[], addrSheet=[], rawScl=[], rawMpw=[];
+let page=1, sortKey='Provider', sortDir='asc';
+let progMode='ALL', statMode='ALL', webMode='ALL', scopeMode='filtered';
+let selCounties=new Set(), compareMap=new Map(), drawerIdx=-1, savedLists=[];
+let visCols=['Provider','Programs','ProviderType','Phone','Email','Counties','ServicesCount','AddressSummary','Active'];
+const kpiPrev={};
+
+const ALL_COLS=[
+  {key:'Provider',label:'Provider',always:true},
+  {key:'Programs',label:'Programs',always:true},
+  {key:'ProviderType',label:'Provider Type'},
+  {key:'Phone',label:'Phone'},
+  {key:'Email',label:'Email'},
+  {key:'Website',label:'Website'},
+  {key:'Counties',label:'Counties'},
+  {key:'ServicesCount',label:'Services #'},
+  {key:'AddressSummary',label:'Address'},
+  {key:'Active',label:'Status'},
+  {key:'CrisisLine',label:'Crisis Line'},
+  {key:'Fax',label:'Fax'},
+  {key:'AltPhone',label:'Alt Phone'},
+  {key:'TollFree',label:'Toll Free'},
+];
+
+const LS='dbhdid_v3';
+
+/* ── SETTINGS ───────────────────────────────────────────── */
+function getS(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LS)||'{}');
+    return{workerBase:s.workerBase||'https://providerdirectory.patrick-44b.workers.dev',autoFetch:s.autoFetch!=='false',dedupe:s.dedupe||'balanced',addrSheet:s.addrSheet!=='false',cols:Array.isArray(s.cols)?s.cols:visCols.slice(),savedLists:Array.isArray(s.savedLists)?s.savedLists:[],theme:s.theme||'dark'};
+  }catch{return{workerBase:'https://providerdirectory.patrick-44b.workers.dev',autoFetch:true,dedupe:'balanced',addrSheet:true,cols:visCols.slice(),savedLists:[],theme:'dark'};}
+}
+function saveS(p){try{localStorage.setItem(LS,JSON.stringify({...getS(),...p}));}catch{}}
+
+/* ── UTILS ──────────────────────────────────────────────── */
+const el=id=>document.getElementById(id);
+function esc(t){const d=document.createElement('div');d.textContent=(t??'').toString();return d.innerHTML;}
+function coalesce(...vs){for(const v of vs){const s=(v??'').toString().trim();if(s)return s;}return '';}
+function normName(s){return(s||'').toString().trim().replace(/\s+/g,' ').toLowerCase();}
+function fmtPh(p){if(!p)return '';const c=p.toString().replace(/\D/g,'');if(c.length===10)return`(${c.slice(0,3)}) ${c.slice(3,6)}-${c.slice(6)}`;if(c.length===11&&c[0]==='1')return`+1 (${c.slice(1,4)}) ${c.slice(4,7)}-${c.slice(7)}`;return p;}
+function trunc(s,n){return s&&s.length>n?s.slice(0,n)+'…':(s||'');}
+function nFmt(n){return(n??'').toLocaleString();}
+
+/* ── TOAST ──────────────────────────────────────────────── */
+function toast(title,msg='',type='info',ttl=4200){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<div class="t-dot"></div><div style="flex:1"><div class="t-ttl">${esc(title)}</div>${msg?`<div class="t-msg">${esc(msg)}</div>`:''}</div><button class="t-cls">✕</button>`;
+  const rm=()=>{t.style.cssText+=';opacity:0;transform:translateX(18px);transition:all 0.15s';setTimeout(()=>t.remove(),150);};
+  t.querySelector('.t-cls').onclick=rm;
+  el('thost').appendChild(t);
+  if(ttl)setTimeout(rm,ttl);
+}
+
+/* ── STATUS / PROGRESS ──────────────────────────────────── */
+function setStatus(txt,type='idle'){
+  const p=el('spill');p.className=`spill ${type}`;
+  el('spillTxt').textContent=txt;
+}
+function setProg(pct,scan=false){
+  const strip=el('pstrip'),fill=el('pfill');
+  if(scan){fill.className='prog-fill scan';strip.style.overflow='hidden';}
+  else{fill.className='prog-fill';fill.style.width=pct+'%';strip.style.overflow='';}
+}
+
+/* ── FIELD PICKERS ──────────────────────────────────────── */
+const pp=o=>{const p=coalesce(o?.phone,o?.phoneNumber,o?.telephone,o?.tel);return p?fmtPh(p):'';};
+const pe=o=>coalesce(o?.email,o?.emailAddress,o?.providerEmail);
+const pw=o=>coalesce(o?.web,o?.website,o?.url);
+const pcr=o=>{const p=coalesce(o?.crisisLine,o?.crisis);return p?fmtPh(p):'';};
+const pfx=o=>{const p=coalesce(o?.fax);return p?fmtPh(p):'';};
+const pal=o=>{const p=coalesce(o?.altPhone,o?.alternatePhone);return p?fmtPh(p):'';};
+const ptl=o=>{const p=coalesce(o?.tollFreePhone,o?.tollFree);return p?fmtPh(p):'';};
+const ptyp=o=>coalesce(o?.providerTypeDesc,o?.providerType,o?.type);
+function psvcs(o){if(Array.isArray(o?.services))return o.services.map(s=>typeof s==='string'?s:(s?.serviceDesc||s?.name||'')).filter(Boolean);if(Array.isArray(o?.providerServices))return o.providerServices.map(s=>typeof s==='string'?s:(s?.serviceDesc||s?.name||'')).filter(Boolean);return [];}
+function pgrps(o){return Array.isArray(o?.groups)?o.groups.map(g=>typeof g==='string'?g:(g?.groupDesc||g?.name||'')).filter(Boolean):[];}
+function pcts(o){const cs=[];for(let i=1;i<=4;i++){const c=o?.[`contact${i}`];if(c&&c.trim())cs.push(c.trim());}return cs;}
+function pact(o){const v=o?.active;if(typeof v==='boolean')return v?'Active':'Inactive';if(typeof v==='string')return v.toLowerCase()==='true'?'Active':(v||'Unknown');return 'Unknown';}
+function faddr(a){
+  if(!a)return{formatted:'',county:'',city:'',state:'',zip:''};
+  const line1=coalesce(a.address1,a.addr1,a.line1,a.street1,a.street);
+  const line2=coalesce(a.address2,a.addr2,a.line2,a.suite);
+  const city =coalesce(a.city,a.town);
+  const state=coalesce(a.state,a.st,a.stateAbbrev);
+  const zip  =coalesce(a.zip,a.zipCode,a.postalCode);
+  const county=coalesce(a.county,a.countyName);
+  const street=[line1,line2].filter(Boolean).join(', ');
+  const csz=[city,state,zip].filter(Boolean).join(' ');
+  const parts=[street,csz].filter(Boolean);
+  return{formatted:parts.join(' • ')||'',county,city,state,zip};
+}
+function dedupAddrs(addrs){
+  const seen=new Set();
+  return(addrs||[]).filter(a=>{const f=faddr(a).formatted;if(!f||seen.has(f))return false;seen.add(f);return true;});
+}
+function sumAddrs(addrs){
+  const deduped=dedupAddrs(addrs);
+  if(!deduped.length)return '';
+  const fmts=deduped.map(a=>faddr(a).formatted).filter(Boolean);
+  const shown=fmts.slice(0,2).join(' | ');
+  return fmts.length>2?shown+` (+${fmts.length-2} more)`:shown;
+}
+function cprog(s,m){if(s&&m)return 'SCL + MPW';if(s)return 'SCL';if(m)return 'MPW';return '';}
+
+/* ── BUILD & DEDUPE ─────────────────────────────────────── */
+function buildDedupe(sclRows,mpwRows){
+  rawCombined=[...sclRows.map(r=>({...r,__p:'SCL'})),...mpwRows.map(r=>({...r,__p:'MPW'}))];
+  addrSheet=[];
+  for(const r of rawCombined){
+    const pn=coalesce(r?.providerDesc,r?.providerName,r?.name);
+    (Array.isArray(r?.providerAddresses)?r.providerAddresses:[]).forEach((a,i)=>{
+      const f=faddr(a);addrSheet.push({Provider:pn,Program:r.__p,AddressIndex:i,Address:f.formatted,County:f.county,City:f.city,State:f.state,Zip:f.zip});
+    });
+  }
+  const map=new Map();
+  function keyFor(r){
+    const nk=normName(coalesce(r?.providerDesc,r?.providerName,r?.name));
+    const ck=normName([pe(r),pp(r),Array.isArray(r?.providerAddresses)&&r.providerAddresses[0]?faddr(r.providerAddresses[0]).formatted:''].filter(Boolean).join('|'));
+    return nk||ck||JSON.stringify(r).slice(0,120);
+  }
+  const activeRank=v=>v==='Active'?2:v==='Inactive'?1:0;
+  for(const r of rawCombined){
+    const pn=coalesce(r?.providerDesc,r?.providerName,r?.name)||'(Unnamed)';
+    const key=keyFor(r),phone=pp(r),email=pe(r);
+    const rAddrs=Array.isArray(r?.providerAddresses)?r.providerAddresses:[];
+    if(!map.has(key)){
+      map.set(key,{Provider:pn,PSet:new Set([r.__p]),ProviderType:ptyp(r),Phone:phone,Email:email,Website:pw(r),CrisisLine:pcr(r),Fax:pfx(r),AltPhone:pal(r),TollFree:ptl(r),Active:pact(r),SvcsArr:psvcs(r),GrpsArr:pgrps(r),CtsArr:pcts(r),__addrs:rAddrs});
+    }else{
+      const e=map.get(key);
+      e.PSet.add(r.__p);
+      if(!e.Phone&&phone)e.Phone=phone;
+      if(!e.Email&&email)e.Email=email;
+      if(!e.Website)e.Website=pw(r);
+      if(!e.CrisisLine)e.CrisisLine=pcr(r);
+      if(!e.Fax)e.Fax=pfx(r);
+      if(!e.AltPhone)e.AltPhone=pal(r);
+      if(!e.TollFree)e.TollFree=ptl(r);
+      // Active: prefer Active > Inactive > Unknown
+      const newAct=pact(r);
+      if(activeRank(newAct)>activeRank(e.Active))e.Active=newAct;
+      // Merge services, groups, contacts (union)
+      psvcs(r).forEach(s=>{if(!e.SvcsArr.includes(s))e.SvcsArr.push(s);});
+      pgrps(r).forEach(g=>{if(!e.GrpsArr.includes(g))e.GrpsArr.push(g);});
+      pcts(r).forEach(c=>{if(!e.CtsArr.includes(c))e.CtsArr.push(c);});
+      // Merge addresses from BOTH program records (not just first non-empty)
+      e.__addrs=e.__addrs.concat(rAddrs);
+    }
+  }
+  return[...map.values()].map(p=>{
+    const scl=p.PSet.has('SCL'),mpw=p.PSet.has('MPW');
+    // Deduplicate merged addresses
+    const dedupedAddrs=dedupAddrs(p.__addrs);
+    const counties=[...new Set(dedupedAddrs.map(a=>faddr(a).county).filter(Boolean))];
+    const cities  =[...new Set(dedupedAddrs.map(a=>faddr(a).city).filter(Boolean))];
+    const zips    =[...new Set(dedupedAddrs.map(a=>faddr(a).zip).filter(Boolean))];
+    const allAddrText=dedupedAddrs.map(a=>faddr(a).formatted).filter(Boolean).join(' ');
+    return{...p,
+      __addrs:dedupedAddrs,
+      Programs:cprog(scl,mpw),
+      ServicesCount:p.SvcsArr.length,
+      Services:p.SvcsArr.join('; '),
+      Counties:counties.join(', '),
+      Cities:cities.join(', '),
+      Zips:zips.join(', '),
+      AddressSummary:sumAddrs(dedupedAddrs),
+      _allAddrText:allAddrText,
+      Groups:p.GrpsArr.join('; '),
+      Contacts:p.CtsArr.join('; '),
+      _scl:scl,_mpw:mpw
+    };
+  });
+}
+
+/* ── FETCH ──────────────────────────────────────────────── */
+async function fetchProg(prog){
+  const base=getS().workerBase.replace(/\/+$/,'');
+  const res=await fetch(`${base}/providers?otherProvider=${encodeURIComponent(prog)}`,{cache:'no-store'});
+  if(!res.ok)throw new Error(`HTTP ${res.status} for ${prog}`);
+  const d=await res.json();
+  if(!Array.isArray(d))throw new Error(`Non-array response for ${prog}`);
+  return d;
+}
+async function loadData(){
+  el('btnFetch').disabled=true;
+  setProg(0,true);setStatus('Fetching SCL + MPW data…','loading');
+  el('afLabel').textContent='Fetching data…';
+  try{
+    const[scl,mpw]=await Promise.all([fetchProg('SCL'),fetchProg('MPW')]);
+    rawScl=scl;rawMpw=mpw;
+    setStatus('Building provider list…','loading');
+    providers=buildDedupe(scl,mpw);
+    page=1;sortKey='Provider';sortDir='asc';
+    buildTypeOptions();buildCountyCloud();
+    visCols=getS().cols; refresh();
+    setProg(100);setStatus(`${providers.length.toLocaleString()} providers loaded`,'ok');
+    toast('Data loaded',`${providers.length.toLocaleString()} providers · ${(scl.length+mpw.length).toLocaleString()} raw`,'success');
+    el('aboutW').textContent=getS().workerBase;
+    ['btnXlsx','btnCsv','btnPdf','btnJson'].forEach(id=>{if(el(id))el(id).disabled=false;});
+  }catch(err){
+    console.error(err);setProg(0);setStatus('Load failed — check Settings','err');
+    toast('Load failed',err.message.slice(0,180),'error',9000);
+  }
+  el('btnFetch').disabled=false;
+}
+
+/* ── MASTER REFRESH ─────────────────────────────────────── */
+function refresh(){
+  applyFilters();updateKpis();renderGrid();renderAnalytics();renderAFPills();updateHints();
+}
+
+/* ── FILTER ENGINE ──────────────────────────────────────── */
+function applyFilters(){
+  const q=el('searchInp').value.toLowerCase().trim();
+  const tp=el('typeFilter').value;
+  const ms=+el('minSvc').value||0;
+  filtered=providers.filter(p=>{
+    if(progMode==='SCL'&&!p._scl)return false;
+    if(progMode==='MPW'&&!p._mpw)return false;
+    if(progMode==='BOTH'&&!(p._scl&&p._mpw))return false;
+    if(statMode!=='ALL'&&p.Active!==statMode)return false;
+    if(tp!=='ALL'&&p.ProviderType!==tp)return false;
+    if(webMode==='YES'&&!p.Website)return false;
+    if(webMode==='NO'&&p.Website)return false;
+    if(p.ServicesCount<ms)return false;
+    if(selCounties.size>0){const pc=(p.Counties||'').split(',').map(c=>c.trim());if(!pc.some(c=>selCounties.has(c)))return false;}
+    if(q){const blob=[p.Provider,p.Phone,p.Email,p.Counties,p.Cities,p.Zips,p.Services,p.Groups,p.Contacts,p.ProviderType,p.AddressSummary,p._allAddrText,p.Website,p.CrisisLine,p.Fax,p.AltPhone,p.TollFree].filter(Boolean).join(' ').toLowerCase();if(!blob.includes(q))return false;}
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    let av=a[sortKey]??'',bv=b[sortKey]??'';
+    if(sortKey==='ServicesCount'){av=+av;bv=+bv;}else{av=String(av).toLowerCase();bv=String(bv).toLowerCase();}
+    return sortDir==='asc'?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
+  });
+  const ps=getPS(),pc=Math.max(1,Math.ceil(filtered.length/ps));
+  if(page>pc)page=pc;
+  el('filtCnt').textContent=filtered.length.toLocaleString();
+}
+function getPS(){return+el('psz').value||50;}
+
+/* ── KPIs ───────────────────────────────────────────────── */
+function animNum(id,target){
+  const e=el(id);if(!e)return;
+  const start=kpiPrev[id]??0;kpiPrev[id]=target;
+  if(start===target){e.textContent=nFmt(target);return;}
+  let t0=null;const dur=380;
+  const step=ts=>{if(!t0)t0=ts;const p=Math.min((ts-t0)/dur,1);const ease=1-Math.pow(1-p,3);e.textContent=nFmt(Math.round(start+(target-start)*ease));if(p<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);
+}
+function updateKpis(){
+  const tot=providers.length,shown=filtered.length;
+  const scl=providers.filter(p=>p._scl).length,mpw=providers.filter(p=>p._mpw).length;
+  const active=filtered.filter(p=>p.Active==='Active').length;
+  animNum('kpiT',tot);animNum('kpiS',shown);animNum('kpiSCL',scl);animNum('kpiMPW',mpw);animNum('kpiA',active);
+  el('kpiTcap').textContent=tot?`${rawCombined.length.toLocaleString()} raw records`:'awaiting fetch';
+  el('kpiScap').textContent=tot?`${tot?((shown/tot*100).toFixed(0)):0}% of total`:'no filter active';
+  el('kpiAcap').textContent=shown?`${((active/shown*100).toFixed(0))}% of shown`:'no data';
+  const t=tot||1;
+  el('kpiTbar').style.width='100%';
+  el('kpiSbar').style.width=`${(shown/t*100).toFixed(1)}%`;
+  el('kpiSCLbar').style.width=`${(scl/t*100).toFixed(1)}%`;
+  el('kpiMPWbar').style.width=`${(mpw/t*100).toFixed(1)}%`;
+  el('kpiAbar').style.width=shown?`${(active/shown*100).toFixed(1)}%`:'0%';
+  el('bShown').textContent=shown.toLocaleString();
+  el('bTotal').textContent=tot.toLocaleString();
+  el('bRaw').textContent=rawCombined.length.toLocaleString();
+}
+
+/* ── ACTIVE FILTER PILLS ────────────────────────────────── */
+function renderAFPills(){
+  const pills=[];
+  const q=el('searchInp').value.trim();
+  if(q)pills.push({l:`Search: "${trunc(q,20)}"`,rm:()=>{el('searchInp').value='';el('searchClr').classList.remove('show');refresh();}});
+  if(progMode!=='ALL')pills.push({l:`Program: ${progMode}`,rm:()=>{progMode='ALL';setSeg('segProg','ALL','c-blue');refresh();}});
+  if(statMode!=='ALL')pills.push({l:`Status: ${statMode}`,rm:()=>{statMode='ALL';setSeg('segStat','ALL','c-blue');refresh();}});
+  const tv=el('typeFilter').value;
+  if(tv!=='ALL')pills.push({l:`Type: ${trunc(tv,18)}`,rm:()=>{el('typeFilter').value='ALL';el('typeFilter').classList.remove('active');refresh();}});
+  if(webMode!=='ALL')pills.push({l:`Website: ${webMode}`,rm:()=>{webMode='ALL';setSeg('segWeb','ALL','c-blue');refresh();}});
+  const ms=+el('minSvc').value||0;
+  if(ms>0)pills.push({l:`Min services: ${ms}`,rm:()=>{el('minSvc').value=0;el('rval').textContent='0';refresh();}});
+  selCounties.forEach(c=>pills.push({l:`County: ${c}`,rm:()=>{selCounties.delete(c);renderCountyCloud();refresh();}}));
+
+  const af=el('afPills');
+  af.innerHTML=pills.map((p,i)=>`<div class="af-pill" data-i="${i}">${esc(p.l)}<button class="af-x" data-i="${i}">✕</button></div>`).join('');
+  af.querySelectorAll('.af-x').forEach(b=>{b.onclick=()=>pills[+b.dataset.i].rm();});
+  const hasFilters=pills.length>0;
+  el('btnClearAll').style.display=hasFilters?'':'none';
+  if(providers.length){
+    el('afLabel').innerHTML=hasFilters
+      ?`<strong>${filtered.length.toLocaleString()}</strong> of ${providers.length.toLocaleString()} providers match:`
+      :`Showing all <strong>${providers.length.toLocaleString()}</strong> providers — use filters to narrow results`;
+  }
+}
+
+/* ── HINTS ──────────────────────────────────────────────── */
+function updateHints(){
+  el('hProg').textContent=progMode!=='ALL'?progMode:'';
+  el('hStat').textContent=statMode!=='ALL'?statMode:'';
+  const tv=el('typeFilter').value;el('hType').textContent=tv!=='ALL'?trunc(tv,14):'';el('typeFilter').classList.toggle('active',tv!=='ALL');
+  const ms=+el('minSvc').value||0;el('hSvc').textContent=ms>0?`≥${ms}`:'';
+  el('hCounty').textContent=selCounties.size>0?`${selCounties.size} selected`:'';
+}
+
+/* ── GRID ───────────────────────────────────────────────── */
+function renderGrid(){
+  const ps=getPS(),pc=Math.max(1,Math.ceil(filtered.length/ps));
+  page=Math.max(1,Math.min(page,pc));
+  const s=(page-1)*ps,items=filtered.slice(s,s+ps);
+  el('pgNum').textContent=page;el('pgCnt').textContent=pc;el('pgInp').value=page;
+  el('sortTag').textContent=`${sortKey} ${sortDir==='asc'?'↑':'↓'}`;
+  el('pgFirst').disabled=page<=1;el('pgPrev').disabled=page<=1;
+  el('pgNext').disabled=page>=pc;el('pgLast').disabled=page>=pc;
+  el('pInfo').innerHTML=items.length?`Showing <strong>${nFmt(s+1)}–${nFmt(Math.min(s+ps,filtered.length))}</strong> of <strong>${nFmt(filtered.length)}</strong> providers`:'No results';
+
+  const q=el('searchInp').value.trim();
+  const hl=text=>{
+    if(!q||!text)return esc(text||'');
+    const re=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return esc(String(text)).replace(re,'<mark>$1</mark>');
+  };
+
+  if(!items.length){
+    el('tbody').innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">No matches</div><div class="empty-sub">Try adjusting your filters</div><button class="btn primary sm" onclick="clearAll()">Clear all filters</button></div></td></tr>`;
+    return;
+  }
+
+  el('tbody').innerHTML=items.map((p,li)=>{
+    const gi=s+li;
+    const prgs=[p._scl?`<span class="badge b-scl">SCL</span>`:'',p._mpw?`<span class="badge b-mpw">MPW</span>`:''].join('');
+    const stat=p.Active==='Active'?`<span class="badge b-act">Active</span>`:p.Active==='Inactive'?`<span class="badge b-ina">Inactive</span>`:`<span class="badge b-unk">${esc(p.Active)}</span>`;
+    const phone=p.Phone?`<a class="a-ph" href="tel:${p.Phone.replace(/\D/g,'')}">${hl(p.Phone)}</a>`:`<span class="cdim">—</span>`;
+    const contact=[
+      p.Email?`<a class="a-em" href="mailto:${esc(p.Email)}">${hl(p.Email)}</a>`:'',
+      p.Website?`<a class="a-wb" href="${esc(p.Website)}" target="_blank" rel="noopener">↗ site</a>`:'',
+    ].filter(Boolean).join('')||`<span class="cdim">—</span>`;
+    const counties=p.Counties?`<div class="ctxt">${hl(trunc(p.Counties,55))}</div>`:`<span class="cdim">—</span>`;
+    const addr=p.AddressSummary?`<div class="ctxt">${hl(trunc(p.AddressSummary,55))}</div>`:`<span class="cdim">—</span>`;
+    const svc=p.ServicesCount>0?`<span class="badge b-svc" data-gi="${gi}">${p.ServicesCount}</span>`:`<span class="cdim">0</span>`;
+    const isSel=compareMap.has(p.Provider);
+    return`<tr data-gi="${gi}" class="rin${isSel?' rsel':''}" style="animation-delay:${li*9}ms">
+      <td class="pcheck"><input type="checkbox" class="rchk" data-gi="${gi}" ${isSel?'checked':''}></td>
+      <td><div class="pname">${hl(p.Provider)}</div><div class="ptype">${p.ProviderType?hl(trunc(p.ProviderType,42)):''}</div></td>
+      <td><div class="brow">${prgs}</div></td>
+      <td><div class="ptype">${p.ProviderType?hl(trunc(p.ProviderType,32)):`<span class="cdim">—</span>`}</div></td>
+      <td>${phone}</td>
+      <td>${contact}</td>
+      <td>${counties}</td>
+      <td style="text-align:center">${svc}</td>
+      <td>${addr}</td>
+      <td>${stat}</td>
+    </tr>`;
+  }).join('');
+
+  el('tbody').querySelectorAll('tr[data-gi]').forEach(row=>{
+    row.addEventListener('click',e=>{
+      if(e.target.classList.contains('rchk')||e.target.classList.contains('b-svc'))return;
+      openDrawer(+row.dataset.gi);
+    });
+  });
+  el('tbody').querySelectorAll('.b-svc[data-gi]').forEach(b=>{
+    b.addEventListener('click',e=>{e.stopPropagation();openSvcModal(+b.dataset.gi);});
+  });
+  el('tbody').querySelectorAll('.rchk').forEach(ck=>{
+    ck.addEventListener('change',()=>{
+      const p=filtered[+ck.dataset.gi];if(!p)return;
+      if(ck.checked)compareMap.set(p.Provider,p);else compareMap.delete(p.Provider);
+      ck.closest('tr').classList.toggle('rsel',ck.checked);
+      updateCmpBar();
+    });
+  });
+}
+
+/* ── ANALYTICS ──────────────────────────────────────────── */
+function renderAnalytics(){
+  const base=filtered.length?filtered:providers;if(!base.length)return;
+  const C={},S={},T={},A={};
+  for(const p of base){
+    (p.Counties||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(c=>{C[c]=(C[c]||0)+1});
+    (p.Services||'').split('; ').map(s=>s.trim()).filter(Boolean).forEach(s=>{S[s]=(S[s]||0)+1});
+    if(p.ProviderType)T[p.ProviderType]=(T[p.ProviderType]||0)+1;
+    const am=(p.Phone||'').match(/\((\d{3})\)/);if(am)A[am[1]]=(A[am[1]]||0)+1;
+  }
+  const top=(obj,n=14)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  function bars(id,entries,cls){
+    const mx=entries[0]?.[1]||1;
+    el(id).innerHTML=entries.map(([k,v])=>`<div class="bar-item"><div class="bar-lbl" title="${esc(k)}">${esc(trunc(k,24))}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${(v/mx*100).toFixed(1)}%"></div></div><div class="bar-cnt">${v}</div></div>`).join('')||`<div style="font-family:var(--mono);font-size:10px;color:var(--t4)">No data</div>`;
+  }
+  bars('aC',top(C,14),'bf-b');bars('aS',top(S,14),'bf-t');bars('aT',top(T,10),'bf-v');bars('aAC',top(A,10),'bf-a');
+  const D={'0':0,'1–5':0,'6–10':0,'11–20':0,'21+':0};
+  for(const p of base){const n=p.ServicesCount;if(n===0)D['0']++;else if(n<=5)D['1–5']++;else if(n<=10)D['6–10']++;else if(n<=20)D['11–20']++;else D['21+']++;}
+  bars('aSD',Object.entries(D).filter(([,v])=>v>0),'bf-a');
+  el('aSCLo').textContent=base.filter(p=>p.Programs==='SCL').length;
+  el('aMPWo').textContent=base.filter(p=>p.Programs==='MPW').length;
+  el('aBoth').textContent=base.filter(p=>p.Programs==='SCL + MPW').length;
+  el('aInact').textContent=base.filter(p=>p.Active!=='Active').length;
+}
+
+/* ── COUNTY CLOUD ───────────────────────────────────────── */
+function buildCountyCloud(){
+  const counts={};
+  for(const p of providers)(p.Counties||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(c=>{counts[c]=(counts[c]||0)+1});
+  window.__cc=counts;renderCountyCloud();
+  el('countySearch').oninput=()=>renderCountyCloud(el('countySearch').value);
+}
+function renderCountyCloud(q=''){
+  const counts=window.__cc||{};
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).filter(([k])=>!q||k.toLowerCase().includes(q.toLowerCase()));
+  el('countyCloud').innerHTML=sorted.map(([c,n])=>`<span class="cchip${selCounties.has(c)?' on':''}" data-c="${esc(c)}" title="${n} providers">${esc(c)}</span>`).join('')||`<span style="font-family:var(--mono);font-size:10px;color:var(--t4)">No matches</span>`;
+  el('countyCloud').querySelectorAll('.cchip').forEach(chip=>{
+    chip.onclick=()=>{
+      const c=chip.dataset.c;
+      if(selCounties.has(c))selCounties.delete(c);else selCounties.add(c);
+      chip.classList.toggle('on',selCounties.has(c));
+      page=1;refresh();
+    };
+  });
+}
+
+function buildTypeOptions(){
+  const types=[...new Set(providers.map(p=>p.ProviderType).filter(Boolean))].sort();
+  el('typeFilter').innerHTML=`<option value="ALL">All types</option>`+types.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+}
+
+/* ── DRAWER ─────────────────────────────────────────────── */
+function openDrawer(idx){
+  const p=filtered[idx];if(!p)return;
+  drawerIdx=idx;
+  el('drName').textContent=p.Provider;
+  el('drBadges').innerHTML=[
+    p._scl?`<span class="badge b-scl">SCL</span>`:'',
+    p._mpw?`<span class="badge b-mpw">MPW</span>`:'',
+    p.Active==='Active'?`<span class="badge b-act">Active</span>`:`<span class="badge b-ina">${esc(p.Active)}</span>`,
+    p.ProviderType?`<span class="badge b-unk">${esc(p.ProviderType)}</span>`:'',
+  ].filter(Boolean).join('');
+
+  const field=(lbl,val,mono=false,full=false)=>`<div class="d-field${full?' full':''}"><div class="d-lbl">${lbl}</div><div class="d-val${mono?' mono':''}">${val||`<span style="color:var(--t4)">—</span>`}</div></div>`;
+  const phone=p.Phone?`<a class="a-ph" href="tel:${p.Phone.replace(/\D/g,'')}">${esc(p.Phone)}</a>`:'';
+  const email=p.Email?`<a class="a-wb" href="mailto:${esc(p.Email)}">${esc(p.Email)}</a>`:'';
+  const site=p.Website?`<a class="a-wb" href="${esc(p.Website)}" target="_blank" rel="noopener">↗ ${esc(p.Website)}</a>`:'';
+  const addrs=(p.__addrs||[]).map(a=>{const f=faddr(a);return`<div class="addr-entry">${esc(f.formatted)}${f.county?`<br><span style="color:var(--t4)">${esc(f.county)} County</span>`:''}</div>`;}).join('');
+  const svcs=(p.SvcsArr||[]).map((s,i)=>`<div class="svc-entry"><div class="svc-n">${i+1}</div><div>${esc(s)}</div></div>`).join('');
+
+  // Contacts: render each as a clickable link if phone-shaped
+  const ctsList=(p.CtsArr||[]).map(c=>{
+    const digits=c.replace(/\D/g,'');
+    return digits.length>=10?`<a class="a-ph" href="tel:${digits}">${esc(c)}</a>`:esc(c);
+  }).join('<br>');
+  // Groups
+  const grpsList=p.GrpsArr?.length?p.GrpsArr.map(g=>`<span class="badge b-unk" style="margin:2px">${esc(g)}</span>`).join(''):'';
+
+  el('drBody').innerHTML=`<div class="d-grid">
+    ${field('Phone',phone,true)}${field('Email',email)}${field('Website',site)}${field('Programs',esc(p.Programs))}
+    ${field('Status',esc(p.Active))}${field('Provider Type',esc(p.ProviderType))}
+    ${field('Counties',esc(p.Counties),true)}${p.Cities?field('Cities',esc(p.Cities),true):''}
+    ${p.Zips?field('ZIP Codes',esc(p.Zips),true):''}${field('Services',String(p.ServicesCount)+' total')}
+    ${p.CrisisLine?field('Crisis Line',`<a class="a-ph" href="tel:${p.CrisisLine.replace(/\D/g,'')}">${esc(p.CrisisLine)}</a>`,true):''}
+    ${p.Fax?field('Fax',esc(p.Fax),true):''}
+    ${p.AltPhone?field('Alt Phone',esc(p.AltPhone),true):''}
+    ${p.TollFree?field('Toll Free',esc(p.TollFree),true):''}
+    ${ctsList?`<div class="d-field full"><div class="d-lbl">Contacts (${(p.CtsArr||[]).length})</div><div class="d-val" style="line-height:2">${ctsList}</div></div>`:''}
+    ${grpsList?`<div class="d-field full"><div class="d-lbl">Groups (${(p.GrpsArr||[]).length})</div><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${grpsList}</div></div>`:''}
+    ${addrs?`<div class="d-field full"><div class="d-lbl">Addresses (${(p.__addrs||[]).length})</div><div style="margin-top:8px;display:flex;flex-direction:column;gap:0">${addrs}</div></div>`:''}
+    ${svcs?`<div class="d-field full"><div class="d-lbl">Services (${p.SvcsArr.length})</div><div class="svc-list">${svcs}</div></div>`:''}
+  </div>`;
+
+  el('drNavInfo').textContent=`${idx+1} of ${filtered.length}`;
+  el('btnDrPrev').disabled=idx<=0;el('btnDrNext').disabled=idx>=filtered.length-1;
+  el('btnDrCmp').style.background=compareMap.has(p.Provider)?'rgba(74,144,255,0.18)':'';
+  el('drawer').classList.add('open');el('dveil').classList.add('open');
+}
+function closeDrawer(){el('drawer').classList.remove('open');el('dveil').classList.remove('open');}
+
+/* ── SVC MODAL ──────────────────────────────────────────── */
+function openSvcModal(idx){
+  const p=filtered[idx];if(!p)return;
+  el('svcTitle').textContent=`${p.Provider} — ${p.SvcsArr.length} Services`;
+  el('svcBody').innerHTML=(p.SvcsArr||[]).map((s,i)=>`<div class="svc-entry"><div class="svc-n">${i+1}</div><div>${esc(s)}</div></div>`).join('')||`<div style="color:var(--t4)">No services listed.</div>`;
+  el('svcVeil').classList.add('open');
+}
+
+/* ── COMPARE BAR ────────────────────────────────────────── */
+function updateCmpBar(){
+  const n=compareMap.size;
+  el('cmpbar').classList.toggle('open',n>0);
+  el('btnCmpOpen').title=`Compare selected (${n})`;
+  if(!n)return;
+  el('cmpChips').innerHTML=[...compareMap.keys()].map(name=>`<div class="cmp-chip">${esc(trunc(name,28))}<button class="cmp-x" data-n="${esc(name)}">✕</button></div>`).join('');
+  el('cmpChips').querySelectorAll('.cmp-x').forEach(b=>{b.onclick=()=>{compareMap.delete(b.dataset.n);updateCmpBar();renderGrid();};});
+}
+function showCmpModal(){
+  const ps=[...compareMap.values()];if(!ps.length)return;
+  const fields=['Programs','Active','ProviderType','Phone','Email','Website','Counties','ServicesCount','CrisisLine','Fax','AddressSummary'];
+  const flbls={Programs:'Programs',Active:'Status',ProviderType:'Type',Phone:'Phone',Email:'Email',Website:'Website',Counties:'Counties',ServicesCount:'Svcs #',CrisisLine:'Crisis',Fax:'Fax',AddressSummary:'Address'};
+  const hdr=ps.map(p=>`<th style="min-width:170px;font-size:12px;font-weight:700;color:var(--t1);text-transform:none;letter-spacing:0">${esc(p.Provider)}</th>`).join('');
+  const rows=fields.map(f=>`<tr><th>${esc(flbls[f]||f)}</th>${ps.map(p=>`<td>${esc(String(p[f]??''))||`<span style="color:var(--t4)">—</span>`}</td>`).join('')}</tr>`).join('');
+  el('cmpBody').innerHTML=`<div style="overflow-x:auto"><table class="cmptbl"><thead><tr><th style="width:110px"></th>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  el('cmpVeil').classList.add('open');
+}
+
+/* ── EXPORTS ────────────────────────────────────────────── */
+function expRows(){return scopeMode==='all'?providers.slice():filtered.slice();}
+
+function doCSV(){
+  const rows=expRows();
+  const keys=['Provider','Programs','Active','ProviderType','Phone','Email','Website','Counties','Cities','Zips','ServicesCount','Services','Groups','Contacts','AddressSummary','CrisisLine','Fax','AltPhone','TollFree'];
+  const e2=s=>{const str=(s??'').toString();return/[",\n\r]/.test(str)?`"${str.replace(/"/g,'""')}"`:(str);};
+  const blob=new Blob([[keys.join(','),...rows.map(r=>keys.map(k=>e2(r[k])).join(','))].join('\n')],{type:'text/csv;charset=utf-8;'});
+  dlFile(URL.createObjectURL(blob),`DBHDID_${new Date().toISOString().slice(0,10)}.csv`);
+  toast('CSV exported',`${rows.length} rows`,'success');
+}
+function doXLSX(){
+  if(typeof XLSX==='undefined'){toast('Error','XLSX library not loaded','error');return;}
+  const rows=expRows();
+  const wb=XLSX.utils.book_new();
+  const keys=['Provider','Programs','Active','ProviderType','Phone','Email','Website','Counties','Cities','Zips','ServicesCount','Services','Groups','Contacts','AddressSummary','CrisisLine','Fax','AltPhone','TollFree'];
+  const ws=XLSX.utils.aoa_to_sheet([keys,...rows.map(r=>keys.map(k=>r[k]??''))]);
+  ws['!cols']=keys.map(k=>({wch:k==='Provider'?44:k==='Services'?70:22}));
+  XLSX.utils.book_append_sheet(wb,ws,'Providers');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Stat','Value'],['Generated',new Date().toLocaleString()],['Total',providers.length],['Exported',rows.length],['SCL',providers.filter(p=>p._scl).length],['MPW',providers.filter(p=>p._mpw).length],['Raw',rawCombined.length]]),'Summary');
+  if(getS().addrSheet&&addrSheet.length){const ak=['Provider','Program','AddressIndex','Address','County','City','State','Zip'];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([ak,...addrSheet.map(r=>ak.map(k=>r[k]??''))]),'Addresses');}
+  XLSX.writeFile(wb,`DBHDID_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Excel exported',`${rows.length} providers`,'success');
+}
+function doPDF(){
+  if(typeof jspdf==='undefined'){toast('Error','jsPDF not loaded','error');return;}
+  const{jsPDF}=jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('DBHDID Provider Directory',14,13);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`${new Date().toLocaleString()} · ${filtered.length} providers`,14,19);
+  const rows=expRows();
+  doc.autoTable({head:[['Provider','Programs','Status','Phone','Counties','Svcs']],body:rows.map(p=>[p.Provider,p.Programs,p.Active,p.Phone,trunc(p.Counties,40),p.ServicesCount]),startY:23,styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[20,50,100],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[240,245,255]},margin:{left:14,right:14}});
+  doc.save(`DBHDID_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF exported',`${rows.length} rows`,'success');
+}
+function doJSON(){
+  const rows=expRows();
+  dlFile(URL.createObjectURL(new Blob([JSON.stringify(rows,null,2)],{type:'application/json'})),`DBHDID_${new Date().toISOString().slice(0,10)}.json`);
+  toast('JSON downloaded',`${rows.length} providers`,'success');
+}
+function exportSingle(){
+  const p=filtered[drawerIdx];if(!p)return;
+  const keys=Object.keys(p).filter(k=>!k.startsWith('_')&&!['PSet','SvcsArr','GrpsArr','CtsArr','__addrs'].includes(k));
+  const e2=s=>{const str=(s??'').toString();return/[",\n\r]/.test(str)?`"${str.replace(/"/g,'""')}"`:(str);};
+  dlFile(URL.createObjectURL(new Blob([[keys.join(','),keys.map(k=>e2(p[k])).join(',')].join('\n')],{type:'text/csv;charset=utf-8;'})),`${p.Provider.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}.csv`);
+  toast('Provider exported',p.Provider,'success');
+}
+function copyTSV(){
+  const ps=getPS(),s=(page-1)*ps,items=filtered.slice(s,s+ps);
+  const keys=['Provider','Programs','Active','Phone','Email','Counties','ServicesCount'];
+  const lines=[keys.join('\t'),...items.map(r=>keys.map(k=>(r[k]??'').toString().replace(/\t/g,'')).join('\t'))];
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>toast('Copied',`${items.length} rows as TSV`,'success'));
+}
+function dlFile(url,name){const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+
+/* ── CLEAR ALL ──────────────────────────────────────────── */
+function clearAll(){
+  el('searchInp').value='';el('searchClr').classList.remove('show');
+  progMode='ALL';setSeg('segProg','ALL','c-blue');
+  statMode='ALL';setSeg('segStat','ALL','c-blue');
+  el('typeFilter').value='ALL';el('typeFilter').classList.remove('active');
+  webMode='ALL';setSeg('segWeb','ALL','c-blue');
+  el('minSvc').value=0;el('rval').textContent='0';
+  selCounties.clear();renderCountyCloud();
+  page=1;refresh();
+}
+
+/* ── SEG HELPERS ────────────────────────────────────────── */
+function setSeg(id,val,activeClass){
+  document.querySelectorAll(`#${id} .seg-opt`).forEach(b=>{
+    b.classList.remove('on','c-blue','c-teal','c-amber','c-green','c-rose');
+    if(b.dataset.v===val){b.classList.add('on');if(activeClass)b.classList.add(activeClass);}
+  });
+}
+
+/* ── SAVED LISTS ────────────────────────────────────────── */
+function saveList(){
+  if(!providers.length){toast('No data','Load data first','error');return;}
+  const name=prompt('List name:',`${filtered.length} providers`);if(!name)return;
+  const s=getS();s.savedLists=s.savedLists||[];
+  s.savedLists.push({name,count:filtered.length,created:new Date().toISOString(),filters:{search:el('searchInp').value,prog:progMode,stat:statMode,type:el('typeFilter').value,web:webMode,minSvc:el('minSvc').value,counties:[...selCounties]}});
+  saveS({savedLists:s.savedLists});savedLists=s.savedLists;renderSaved();
+  toast('Saved',`"${name}" — ${filtered.length} providers`,'success');
+}
+function renderSaved(){
+  const s=getS();savedLists=s.savedLists||[];const c=el('savedBody');
+  if(!savedLists.length){c.innerHTML='<span style="font-family:var(--mono);font-size:10px;color:var(--t4)">No saved filter sets yet.</span>';return;}
+  c.innerHTML=savedLists.map((lst,i)=>`
+    <div class="saved-item">
+      <div style="flex:1"><div class="saved-name">${esc(lst.name)}</div><div class="saved-meta">${lst.count} providers · ${new Date(lst.created).toLocaleDateString()}</div></div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn sm" data-load="${i}" title="Load filters">↩ Load</button>
+        <button class="btn sm pdf" data-del="${i}" title="Delete">✕</button>
+      </div>
+    </div>`).join('');
+  c.querySelectorAll('[data-load]').forEach(b=>{
+    b.onclick=()=>{
+      const lst=savedLists[+b.dataset.load];if(!lst?.filters)return;
+      const f=lst.filters;
+      el('searchInp').value=f.search||'';el('searchClr').classList.toggle('show',!!(f.search));
+      progMode=f.prog||'ALL';setSeg('segProg',progMode,'c-blue');
+      statMode=f.stat||'ALL';setSeg('segStat',statMode,statMode==='Active'?'c-green':statMode==='Inactive'?'c-rose':'c-blue');
+      el('typeFilter').value=f.type||'ALL';el('typeFilter').classList.toggle('active',f.type&&f.type!=='ALL');
+      webMode=f.web||'ALL';setSeg('segWeb',webMode,webMode==='YES'?'c-teal':webMode==='NO'?'c-amber':'c-blue');
+      el('minSvc').value=f.minSvc||0;el('rval').textContent=f.minSvc||'0';
+      selCounties=new Set(f.counties||[]);renderCountyCloud();
+      page=1;refresh();toast('Loaded',`"${lst.name}"`,'success');
+    };
+  });
+  c.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=()=>{savedLists.splice(+b.dataset.del,1);saveS({savedLists});renderSaved();};
+  });
+}
+
+/* ── COLUMN CHOOSER ─────────────────────────────────────── */
+function openColModal(){
+  el('colGrid').innerHTML=ALL_COLS.map(c=>`
+    <div class="col-item">
+      <input type="checkbox" id="ck_${c.key}" ${visCols.includes(c.key)||c.always?'checked':''} ${c.always?'disabled':''}>
+      <label for="ck_${c.key}">${esc(c.label)}</label>
+    </div>`).join('');
+  el('colVeil').classList.add('open');
+}
+
+/* ── THEME ──────────────────────────────────────────────── */
+function toggleTheme(){
+  const r=document.documentElement;
+  if(!r.hasAttribute('data-light')){
+    r.setAttribute('data-light','');
+    r.style.setProperty('--bg','#f0f3fa');r.style.setProperty('--surf','#ffffff');r.style.setProperty('--surf2','#edf0f9');r.style.setProperty('--surf3','#e3e8f4');r.style.setProperty('--panel','#f7f9ff');
+    r.style.setProperty('--line','rgba(60,100,200,0.10)');r.style.setProperty('--line2','rgba(60,100,200,0.18)');r.style.setProperty('--line3','rgba(60,100,200,0.32)');
+    r.style.setProperty('--t1','#0d1630');r.style.setProperty('--t2','#2a3f80');r.style.setProperty('--t3','#5060a0');r.style.setProperty('--t4','#8090c0');
+    el('btnTheme').textContent='☀';
+  }else{
+    r.removeAttribute('data-light');
+    ['--bg','--surf','--surf2','--surf3','--panel','--line','--line2','--line3','--t1','--t2','--t3','--t4'].forEach(v=>r.style.removeProperty(v));
+    el('btnTheme').textContent='☾';
+  }
+}
+
+/* ── TABS ───────────────────────────────────────────────── */
+function showTab(name){
+  ['dir','analytics','about'].forEach(t=>{const e=el('tab'+t.charAt(0).toUpperCase()+t.slice(1));if(e)e.style.display=t===name?'':'none';});
+  document.querySelectorAll('#mainTabs .tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
+  if(name==='analytics')renderAnalytics();
+}
+
+/* ── INIT ───────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=getS();
+  el('aboutW').textContent=s.workerBase;
+  renderSaved();
+
+  /* Sort headers */
+  el('thead').querySelectorAll('th[data-k]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const k=th.dataset.k;
+      if(sortKey===k)sortDir=sortDir==='asc'?'desc':'asc';else{sortKey=k;sortDir='asc';}
+      el('thead').querySelectorAll('th').forEach(t=>{t.classList.remove('sa','sd');});
+      th.classList.add(sortDir==='asc'?'sa':'sd');
+      page=1;applyFilters();renderGrid();
+    });
+  });
+
+  /* Program seg */
+  document.querySelectorAll('#segProg .seg-opt').forEach(b=>{
+    b.addEventListener('click',()=>{progMode=b.dataset.v;setSeg('segProg',progMode,'c-blue');page=1;refresh();});
+  });
+  /* Status seg */
+  document.querySelectorAll('#segStat .seg-opt').forEach(b=>{
+    b.addEventListener('click',()=>{
+      statMode=b.dataset.v;
+      const cls=statMode==='Active'?'c-green':statMode==='Inactive'?'c-rose':'c-blue';
+      setSeg('segStat',statMode,cls);page=1;refresh();
+    });
+  });
+  /* Web seg */
+  document.querySelectorAll('#segWeb .seg-opt').forEach(b=>{
+    b.addEventListener('click',()=>{
+      webMode=b.dataset.v;
+      const cls=webMode==='YES'?'c-teal':webMode==='NO'?'c-amber':'c-blue';
+      setSeg('segWeb',webMode,cls);page=1;refresh();
+    });
+  });
+  /* Scope seg */
+  document.querySelectorAll('#segScope .seg-opt').forEach(b=>{
+    b.addEventListener('click',()=>{scopeMode=b.dataset.v;setSeg('segScope',scopeMode,'c-blue');});
+  });
+
+  /* Search */
+  el('searchInp').addEventListener('input',()=>{
+    el('searchClr').classList.toggle('show',!!el('searchInp').value);page=1;refresh();
+  });
+  el('searchClr').addEventListener('click',()=>{
+    el('searchInp').value='';el('searchClr').classList.remove('show');el('searchInp').focus();page=1;refresh();
+  });
+
+  /* Other filters */
+  el('typeFilter').addEventListener('change',()=>{el('typeFilter').classList.toggle('active',el('typeFilter').value!=='ALL');page=1;refresh();});
+  el('minSvc').addEventListener('input',()=>{el('rval').textContent=el('minSvc').value;page=1;refresh();});
+  el('psz').addEventListener('change',()=>{page=1;renderGrid();});
+
+  /* Pagination */
+  el('pgFirst').addEventListener('click',()=>{page=1;renderGrid();});
+  el('pgPrev').addEventListener('click',()=>{if(page>1){page--;renderGrid();}});
+  el('pgNext').addEventListener('click',()=>{const pc=Math.max(1,Math.ceil(filtered.length/getPS()));if(page<pc){page++;renderGrid();}});
+  el('pgLast').addEventListener('click',()=>{page=Math.max(1,Math.ceil(filtered.length/getPS()));renderGrid();});
+  el('pgInp').addEventListener('change',()=>{page=Math.max(1,Math.min(+el('pgInp').value||1,Math.ceil(filtered.length/getPS())));renderGrid();});
+
+  /* Topbar buttons */
+  el('btnFetch').addEventListener('click',loadData);
+  el('btnXlsx').addEventListener('click',doXLSX);
+  el('btnCsv').addEventListener('click',doCSV);
+  el('btnPdf').addEventListener('click',doPDF);
+  el('btnJson').addEventListener('click',doJSON);
+  el('btnCopyTsv').addEventListener('click',copyTSV);
+  el('btnTheme').addEventListener('click',toggleTheme);
+  el('btnSettings').addEventListener('click',()=>{
+    const s=getS();el('sWorker').value=s.workerBase;el('sDedupe').value=s.dedupe;el('sAuto').value=s.autoFetch?'true':'false';el('sAddr').value=s.addrSheet?'true':'false';
+    el('setVeil').classList.add('open');
+  });
+  el('setSave').addEventListener('click',()=>{
+    saveS({workerBase:el('sWorker').value.trim(),dedupe:el('sDedupe').value,autoFetch:el('sAuto').value,addrSheet:el('sAddr').value});
+    el('setVeil').classList.remove('open');toast('Settings saved','','success',2000);
+  });
+  el('setClose').addEventListener('click',()=>el('setVeil').classList.remove('open'));
+  el('setCancel').addEventListener('click',()=>el('setVeil').classList.remove('open'));
+  el('setVeil').addEventListener('click',e=>{if(e.target===el('setVeil'))el('setVeil').classList.remove('open');});
+
+  /* Clear buttons */
+  el('btnClearFilters').addEventListener('click',clearAll);
+  el('btnClearAll').addEventListener('click',clearAll);
+
+  /* Save / Tabs */
+  el('btnSave').addEventListener('click',saveList);
+  document.querySelectorAll('#mainTabs .tab-btn').forEach(b=>{b.addEventListener('click',()=>showTab(b.dataset.tab));});
+
+  /* Columns */
+  el('btnCols').addEventListener('click',openColModal);
+  el('colApply').addEventListener('click',()=>{
+    visCols=ALL_COLS.filter(c=>c.always||document.getElementById(`ck_${c.key}`)?.checked).map(c=>c.key);
+    saveS({cols:visCols});el('colVeil').classList.remove('open');renderGrid();toast('Columns updated','','success',2000);
+  });
+  el('colReset').addEventListener('click',()=>{
+    visCols=['Provider','Programs','ProviderType','Phone','Email','Counties','ServicesCount','AddressSummary','Active'];
+    saveS({cols:visCols});el('colVeil').classList.remove('open');renderGrid();
+  });
+  el('colClose').addEventListener('click',()=>el('colVeil').classList.remove('open'));
+  el('colVeil').addEventListener('click',e=>{if(e.target===el('colVeil'))el('colVeil').classList.remove('open');});
+
+  /* Select page */
+  el('btnSelPage').addEventListener('click',()=>{
+    const ps=getPS(),s2=(page-1)*ps,items=filtered.slice(s2,s2+ps);
+    const allOn=items.every(p=>compareMap.has(p.Provider));
+    items.forEach(p=>{if(allOn)compareMap.delete(p.Provider);else compareMap.set(p.Provider,p);});
+    updateCmpBar();renderGrid();
+  });
+  el('chkAll').addEventListener('change',()=>{
+    const ps=getPS(),s2=(page-1)*ps,items=filtered.slice(s2,s2+ps);
+    items.forEach(p=>{if(el('chkAll').checked)compareMap.set(p.Provider,p);else compareMap.delete(p.Provider);});
+    updateCmpBar();renderGrid();
+  });
+
+  /* Compare */
+  el('btnCmpOpen').addEventListener('click',()=>{if(compareMap.size>0)showCmpModal();else toast('No selection','Check providers to compare','info');});
+  el('btnCmpView').addEventListener('click',showCmpModal);
+  el('btnCmpClear').addEventListener('click',()=>{compareMap.clear();updateCmpBar();renderGrid();});
+  el('cmpClose').addEventListener('click',()=>el('cmpVeil').classList.remove('open'));
+  el('cmpVeil').addEventListener('click',e=>{if(e.target===el('cmpVeil'))el('cmpVeil').classList.remove('open');});
+
+  /* Drawer */
+  el('dveil').addEventListener('click',closeDrawer);
+  el('btnDrClose').addEventListener('click',closeDrawer);
+  el('btnDrPrev').addEventListener('click',()=>{if(drawerIdx>0)openDrawer(drawerIdx-1);});
+  el('btnDrNext').addEventListener('click',()=>{if(drawerIdx<filtered.length-1)openDrawer(drawerIdx+1);});
+  el('btnDrCmp').addEventListener('click',()=>{
+    const p=filtered[drawerIdx];if(!p)return;
+    if(compareMap.has(p.Provider))compareMap.delete(p.Provider);else compareMap.set(p.Provider,p);
+    el('btnDrCmp').style.background=compareMap.has(p.Provider)?'rgba(74,144,255,0.18)':'';
+    updateCmpBar();renderGrid();
+  });
+  el('btnDrExp').addEventListener('click',exportSingle);
+
+  /* Svc modal */
+  el('svcClose').addEventListener('click',()=>el('svcVeil').classList.remove('open'));
+  el('svcVeil').addEventListener('click',e=>{if(e.target===el('svcVeil'))el('svcVeil').classList.remove('open');});
+
+  /* Keyboard */
+  document.addEventListener('keydown',e=>{
+    if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){e.preventDefault();el('searchInp').focus();el('searchInp').select();}
+    if(e.key==='Enter'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))loadData();
+    if(e.key==='Escape'){
+      closeDrawer();
+      ['svcVeil','cmpVeil','colVeil','setVeil'].forEach(id=>el(id).classList.remove('open'));
+    }
+    if(el('drawer').classList.contains('open')){
+      if(e.key==='ArrowLeft'&&drawerIdx>0)openDrawer(drawerIdx-1);
+      if(e.key==='ArrowRight'&&drawerIdx<filtered.length-1)openDrawer(drawerIdx+1);
+    }
+  });
+
+  /* Auto-fetch */
+  if(s.autoFetch)setTimeout(loadData,500);
+});
+</script>
 </body>
 </html>
