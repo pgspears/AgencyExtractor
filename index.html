@@ -123,9 +123,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .kpi-fill{height:100%;border-radius:999px;transition:width 0.6s var(--ease)}
 .kpi-blue .kpi-fill{background:linear-gradient(90deg,var(--blue),var(--sky))}.kpi-sky .kpi-fill{background:linear-gradient(90deg,var(--sky),var(--teal))}.kpi-teal .kpi-fill{background:var(--teal)}.kpi-amb .kpi-fill{background:var(--amber)}.kpi-grn .kpi-fill{background:var(--green)}
 /* ── ACTIVE FILTER BAR ── */
-.afbar{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:48px}
-.afbar-label{font-family:var(--mono);font-size:10px;color:var(--t3);flex-shrink:0;white-space:nowrap}
+.afbar{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:48px;transition:border-color var(--tf),background var(--tf),box-shadow var(--tf)}
+.afbar.afbar-active{border-color:rgba(74,144,255,0.40);background:linear-gradient(90deg,rgba(74,144,255,0.07),var(--surf) 40%);box-shadow:inset 3px 0 0 var(--blue)}
+.afbar-label{font-family:var(--mono);font-size:10px;color:var(--t3);flex-shrink:0;white-space:nowrap;display:flex;align-items:center;gap:8px}
 .afbar-label strong{color:var(--t2)}
+.afbar-badge{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(74,144,255,0.18);border:1px solid rgba(74,144,255,0.35);color:var(--blue2);font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
 .afbar-pills{display:flex;gap:7px;flex-wrap:wrap;flex:1}
 .af-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:1px solid rgba(74,144,255,0.35);background:rgba(74,144,255,0.12);color:var(--blue2);font-family:var(--mono);font-size:10px;font-weight:600;animation:pillPop 0.14s ease-out}
 @keyframes pillPop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
@@ -536,10 +538,10 @@ mark{background:rgba(245,166,35,0.25);color:var(--amber2);border-radius:3px;padd
             <div class="flbl">Rows Per Page</div>
             <select class="fsel" id="psz">
               <option value="25">25 per page</option>
-              <option value="50" selected>50 per page</option>
+              <option value="50">50 per page</option>
               <option value="100">100 per page</option>
               <option value="250">250 per page</option>
-              <option value="9999">All rows</option>
+              <option value="9999" selected>All rows</option>
             </select>
           </div>
 
@@ -1057,6 +1059,27 @@ function updateKpis(){
   el('bRaw').textContent=rawCombined.length.toLocaleString();
 }
 
+/* ── ACTIVE FILTERS (shared source of truth) ────────────── */
+/* Returns an array of {label, value} describing every active filter.
+   Used by: GUI pills, PDF export, XLSX summary sheet. */
+function getActiveFilterDescriptions(){
+  const list=[];
+  const q=el('searchInp').value.trim();
+  if(q)list.push({label:'Search',value:`"${q}"`});
+  if(progMode!=='ALL')list.push({label:'Program',value:progMode});
+  if(statMode!=='ALL')list.push({label:'Status',value:statMode});
+  const tv=el('typeFilter').value;
+  if(tv!=='ALL')list.push({label:'Provider Type',value:tv});
+  if(webMode!=='ALL')list.push({label:'Website',value:webMode==='YES'?'Has website':'No website'});
+  const ms=+el('minSvc').value||0;
+  if(ms>0)list.push({label:'Min services',value:`≥ ${ms}`});
+  if(selCounties.size>0){
+    const cs=[...selCounties].sort();
+    list.push({label:`Counties (${cs.length})`,value:cs.join(', ')});
+  }
+  return list;
+}
+
 /* ── ACTIVE FILTER PILLS ────────────────────────────────── */
 function renderAFPills(){
   const pills=[];
@@ -1076,9 +1099,14 @@ function renderAFPills(){
   af.querySelectorAll('.af-x').forEach(b=>{b.onclick=()=>pills[+b.dataset.i].rm();});
   const hasFilters=pills.length>0;
   el('btnClearAll').style.display=hasFilters?'':'none';
+
+  // Visual state: highlight the whole bar when filters are active
+  const barEl=document.querySelector('.afbar');
+  if(barEl)barEl.classList.toggle('afbar-active',hasFilters);
+
   if(providers.length){
     el('afLabel').innerHTML=hasFilters
-      ?`<strong>${filtered.length.toLocaleString()}</strong> of ${providers.length.toLocaleString()} providers match:`
+      ?`<span class="afbar-badge">${pills.length} filter${pills.length===1?'':'s'} applied</span> <strong>${filtered.length.toLocaleString()}</strong> of ${providers.length.toLocaleString()} providers match:`
       :`Showing all <strong>${providers.length.toLocaleString()}</strong> providers — use filters to narrow results`;
   }
 }
@@ -1302,25 +1330,143 @@ function doCSV(){
 function doXLSX(){
   if(typeof XLSX==='undefined'){toast('Error','XLSX library not loaded','error');return;}
   const rows=expRows();
+  const filters=getActiveFilterDescriptions();
   const wb=XLSX.utils.book_new();
   const keys=['Provider','Programs','Active','ProviderType','Phone','Email','Website','Counties','Cities','Zips','ServicesCount','Services','Groups','Contacts','AddressSummary','CrisisLine','Fax','AltPhone','TollFree'];
   const ws=XLSX.utils.aoa_to_sheet([keys,...rows.map(r=>keys.map(k=>r[k]??''))]);
   ws['!cols']=keys.map(k=>({wch:k==='Provider'?44:k==='Services'?70:22}));
   XLSX.utils.book_append_sheet(wb,ws,'Providers');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Stat','Value'],['Generated',new Date().toLocaleString()],['Total',providers.length],['Exported',rows.length],['SCL',providers.filter(p=>p._scl).length],['MPW',providers.filter(p=>p._mpw).length],['Raw',rawCombined.length]]),'Summary');
+
+  // Summary sheet with applied filters
+  const summaryRows=[
+    ['DBHDID Provider Directory Export'],
+    [],
+    ['Statistic','Value'],
+    ['Generated',new Date().toLocaleString()],
+    ['Export Scope',scopeMode==='all'?'All providers (filters ignored)':'Filtered results'],
+    ['Records Exported',rows.length],
+    ['Total Providers',providers.length],
+    ['Raw Records',rawCombined.length],
+    ['SCL Providers',providers.filter(p=>p._scl).length],
+    ['MPW Providers',providers.filter(p=>p._mpw).length],
+    [],
+    ['Applied Filters',filters.length],
+  ];
+  if(scopeMode!=='all'){
+    if(filters.length){
+      summaryRows.push(['Filter','Value']);
+      filters.forEach(f=>summaryRows.push([f.label,f.value]));
+    }else{
+      summaryRows.push(['(none)','Showing all providers']);
+    }
+  }else{
+    summaryRows.push(['(scope=all)','Filters were not applied to this export']);
+  }
+  const sws=XLSX.utils.aoa_to_sheet(summaryRows);
+  sws['!cols']=[{wch:24},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,sws,'Summary');
+
   if(getS().addrSheet&&addrSheet.length){const ak=['Provider','Program','AddressIndex','Address','County','City','State','Zip'];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([ak,...addrSheet.map(r=>ak.map(k=>r[k]??''))]),'Addresses');}
   XLSX.writeFile(wb,`DBHDID_${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Excel exported',`${rows.length} providers`,'success');
+  toast('Excel exported',`${rows.length} providers${filters.length?` · ${filters.length} filter${filters.length===1?'':'s'}`:''}`,'success');
 }
 function doPDF(){
   if(typeof jspdf==='undefined'){toast('Error','jsPDF not loaded','error');return;}
   const{jsPDF}=jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('DBHDID Provider Directory',14,13);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`${new Date().toLocaleString()} · ${filtered.length} providers`,14,19);
   const rows=expRows();
-  doc.autoTable({head:[['Provider','Programs','Status','Phone','Counties','Svcs']],body:rows.map(p=>[p.Provider,p.Programs,p.Active,p.Phone,trunc(p.Counties,40),p.ServicesCount]),startY:23,styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[20,50,100],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[240,245,255]},margin:{left:14,right:14}});
+  const filters=getActiveFilterDescriptions();
+  const pageW=doc.internal.pageSize.getWidth();
+  const margin=14;
+
+  // ── Title
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(20,50,100);
+  doc.text('DBHDID Provider Directory',margin,14);
+
+  // ── Generated timestamp (top-right)
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(110,110,110);
+  doc.text(`Generated ${new Date().toLocaleString()}`,pageW-margin,14,{align:'right'});
+
+  // ── Export scope sub-header
+  doc.setFontSize(9);doc.setTextColor(60,60,60);
+  const scopeLabel=scopeMode==='all'?'All providers (filters ignored)':'Filtered results';
+  doc.text(`Scope: ${scopeLabel}  ·  Showing ${rows.length.toLocaleString()} of ${providers.length.toLocaleString()} providers`,margin,20);
+
+  // ── Filter summary box
+  let summaryY=26;
+  const showFilters=scopeMode!=='all'; // don't list filters if user chose "all data"
+  if(showFilters){
+    const boxX=margin,boxW=pageW-margin*2;
+    const lines=[];
+    if(filters.length){
+      filters.forEach(f=>{
+        // Split long values across lines so nothing overflows
+        const wrapped=doc.splitTextToSize(`• ${f.label}: ${f.value}`,boxW-8);
+        wrapped.forEach(w=>lines.push(w));
+      });
+    }else{
+      lines.push('• No filters applied — showing all providers');
+    }
+    const lineH=4.2;
+    const headH=5;
+    const boxH=headH+lines.length*lineH+4;
+
+    // Background
+    doc.setFillColor(242,246,252);
+    doc.setDrawColor(200,215,235);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(boxX,summaryY,boxW,boxH,1.5,1.5,'FD');
+
+    // Header
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(20,50,100);
+    doc.text(`APPLIED FILTERS  (${filters.length})`,boxX+4,summaryY+4);
+
+    // Lines
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(55,65,85);
+    lines.forEach((ln,i)=>{
+      doc.text(ln,boxX+4,summaryY+headH+3+i*lineH);
+    });
+
+    summaryY+=boxH+3;
+  }
+
+  // ── Table
+  doc.autoTable({
+    head:[['Provider','Programs','Status','Phone','Email','Counties','Svcs']],
+    body:rows.map(p=>[
+      p.Provider,
+      p.Programs,
+      p.Active,
+      p.Phone||'',
+      p.Email||'',
+      trunc(p.Counties,40),
+      p.ServicesCount
+    ]),
+    startY:summaryY,
+    styles:{fontSize:7,cellPadding:2,overflow:'linebreak'},
+    headStyles:{fillColor:[20,50,100],textColor:255,fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[240,245,255]},
+    columnStyles:{
+      0:{cellWidth:62},   // Provider
+      1:{cellWidth:22},   // Programs
+      2:{cellWidth:18},   // Status
+      3:{cellWidth:30},   // Phone
+      4:{cellWidth:55},   // Email
+      5:{cellWidth:'auto'},// Counties
+      6:{cellWidth:12,halign:'center'} // Svcs
+    },
+    margin:{left:margin,right:margin},
+    didDrawPage:(data)=>{
+      // Footer on every page
+      const pg=doc.internal.getCurrentPageInfo().pageNumber;
+      const pgs=doc.internal.getNumberOfPages();
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(130,130,130);
+      doc.text(`Page ${pg} of ${pgs}`,pageW-margin,doc.internal.pageSize.getHeight()-6,{align:'right'});
+      doc.text(`DBHDID Provider Directory · ${rows.length.toLocaleString()} records`,margin,doc.internal.pageSize.getHeight()-6);
+    }
+  });
+
   doc.save(`DBHDID_${new Date().toISOString().slice(0,10)}.pdf`);
-  toast('PDF exported',`${rows.length} rows`,'success');
+  toast('PDF exported',`${rows.length} rows${filters.length?` · ${filters.length} filter${filters.length===1?'':'s'}`:''}`,'success');
 }
 function doJSON(){
   const rows=expRows();
